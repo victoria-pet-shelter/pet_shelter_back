@@ -1,4 +1,5 @@
 ﻿using ORM = Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace Pet_Shelter
 {
@@ -6,13 +7,9 @@ namespace Pet_Shelter
     {
         static void Main(string[] args)
         {
-
-            RunApplication();
+            Console.WriteLine("Hello, Pet_Shleter!");
         }
-
-        static void RunApplication()
-        {
-            Console.WriteLine("Hello, Pet Shelter!");
-        }
+        
+        
     }
 }
