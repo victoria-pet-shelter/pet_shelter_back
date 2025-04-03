@@ -12,7 +12,7 @@ public class User{
 
 public class Roles{
     public int id { get; set; }
-    public string name { get; set; } // "admin"/"user"/shelter_owner
+    public string name { get; set; } // admin/user/shelter_owner
 }
 
 public class Shelters{
