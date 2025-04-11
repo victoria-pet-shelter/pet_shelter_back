@@ -66,13 +66,13 @@ public class Pets
     public Guid shelter_id { get; set; } // UUID приюта
 }
 
-public class Adoption_statuses
+public class AdoptionStatuses
 {
     public int id { get; set; }
     public string? name { get; set; }
 }
 
-public class Adoption_requests
+public class AdoptionRequests
 {
     public Guid id { get; set; }
     public Guid pet_id { get; set; }

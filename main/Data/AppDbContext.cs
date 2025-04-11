@@ -17,8 +17,8 @@ public class AppDbContext : DbContext
     public DbSet<Breeds> Breeds { get; set; }
     public DbSet<Genders> Genders { get; set; }
     public DbSet<Pets> Pets { get; set; }
-    public DbSet<Adoption_statuses> AdoptionStatuses { get; set; }
-    public DbSet<Adoption_requests> AdoptionRequests { get; set; }
+    public DbSet<AdoptionStatuses> AdoptionStatuses { get; set; }
+    public DbSet<AdoptionRequests> AdoptionRequests { get; set; }
     public DbSet<Favorites> Favorites { get; set; }
     public DbSet<News> News { get; set; }
     public DbSet<Reviews> Reviews { get; set; }
