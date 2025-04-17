@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Models; // Models.cs
+
 public class AppDbContext : DbContext
 {
     private readonly IConfiguration _configuration;
