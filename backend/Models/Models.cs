@@ -9,6 +9,9 @@ public class User
     public string? role { get; set; }  // "admin"/"user"/"shelter_owner"
     public string? phone { get; set; }
     public string? address { get; set; }
+
+    // One user can own multiple shelters
+    public List<Shelters>? Shelters { get; set; }
 }
 
 public class Roles
@@ -20,32 +23,36 @@ public class Roles
 public class Shelters
 {
     public Guid id { get; set; } // UUID
-    public Guid shelter_owner_id { get; set; } // UUID пользователя
+    public Guid shelter_owner_id { get; set; } // UUID of the user
+
     public string? name { get; set; }
     public string? address { get; set; }
     public string? phone { get; set; }
     public string? email { get; set; }
     public string? description { get; set; }
-    public DateTime created_at { get; set; } // дата создания
+    public DateTime created_at { get; set; } // creation date
+
+    // Navigation property to owner
+    public User? Owner { get; set; }
 }
 
 public class Species
 {
     public int id { get; set; }
-    public string? name { get; set; } // название вида
+    public string? name { get; set; } // species name
 }
 
 public class Breeds
 {
     public int id { get; set; }
-    public int species_id { get; set; } // внешний ключ к таблице species
-    public string? name { get; set; } // название породы
+    public int species_id { get; set; } // foreign key to species
+    public string? name { get; set; } // breed name
 }
 
 public class Genders
 {
     public int id { get; set; }
-    public string? name { get; set; } // пол
+    public string? name { get; set; } // gender
 }
 
 public class Pets
@@ -63,7 +70,13 @@ public class Pets
     public string? description { get; set; }
     public string? image { get; set; }
     public DateTime created_at { get; set; }
-    public Guid shelter_id { get; set; } // UUID приюта
+    public Guid shelter_id { get; set; } // UUID of shelter
+
+    // Navigation properties
+    public Shelters? Shelter { get; set; }
+    public Species? Species { get; set; }
+    public Breeds? Breed { get; set; }
+    public Genders? Gender { get; set; }
 }
 
 public class AdoptionStatuses
@@ -106,6 +119,6 @@ public class Reviews
     public Guid user_id { get; set; }
     public Guid shelter_id { get; set; }
     public string? comment { get; set; }
-    public int rating { get; set; } // от 1 до 5
+    public int rating { get; set; } // 1 to 5
     public DateTime created_at { get; set; }
 }

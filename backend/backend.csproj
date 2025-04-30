@@ -24,7 +24,8 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.3" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.0" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.22.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.1" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.34.0" />
 
   </ItemGroup>
 
