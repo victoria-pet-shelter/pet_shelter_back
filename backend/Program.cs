@@ -10,7 +10,6 @@ namespace Pet_Shelter
         {
             AppSettings.ConfigureAppSettings();
             builder.Services.ConfigureAppSettings(builder.Configuration);
-
         }
     }
 }
