@@ -1,6 +1,6 @@
 namespace Models;
 
-public class User
+public class Users
 {
     public Guid id { get; set; } // UUID
     public string? name { get; set; }
@@ -33,7 +33,7 @@ public class Shelters
     public DateTime created_at { get; set; } // creation date
 
     // Navigation property to owner
-    public User? Owner { get; set; }
+    public Users? Owner { get; set; }
 }
 
 public class Species

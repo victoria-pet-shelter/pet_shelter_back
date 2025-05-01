@@ -11,7 +11,7 @@ public class AppDbContext : DbContext
         _configuration = configuration;
     }
 
-    public DbSet<User> Users { get; set; }
+    public DbSet<Users> Users { get; set; }
     public DbSet<Roles> Roles { get; set; }
     public DbSet<Shelters> Shelters { get; set; }
     public DbSet<Species> Species { get; set; }

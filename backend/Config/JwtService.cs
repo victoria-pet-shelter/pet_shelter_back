@@ -15,14 +15,14 @@ public class JwtService
         _config = config;
     }
 
-    // Генерация токена
+    // Token generation
     public string GenerateToken(Guid userId, string role)
     {
         var claims = new[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()), // ID пользователя
-            new Claim(ClaimTypes.Role, role), // роль
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // уникальный ID токена
+            new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()), // User ID
+            new Claim(ClaimTypes.Role, role), // User role
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // Uniq ID token
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));

@@ -21,13 +21,13 @@ public class AuthController : ControllerBase
 
     // Register endpoint
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] User user)
+    public async Task<IActionResult> Register([FromBody] Users user)
     {
         // Have a user with these email
         var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.email == user.email);
         if (existingUser != null)
         {
-            return BadRequest("Пользователь с таким email уже существует.");
+            return BadRequest("A user with this email already exists.");
         }
 
         user.id = Guid.NewGuid();
@@ -42,7 +42,7 @@ public class AuthController : ControllerBase
 
     // Login endpoint
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] User loginRequest)
+    public async Task<IActionResult> Login([FromBody] Users loginRequest)
     {
         // Have a user with these email
         var user = await _context.Users.FirstOrDefaultAsync(u => u.email == loginRequest.email);
