@@ -50,18 +50,60 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Pets>()
             .HasOne(p => p.Species)
             .WithMany()
-            .HasForeignKey(p => p.species_id);
+            .HasForeignKey(p => p.species_id)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Pet -> Breed
         modelBuilder.Entity<Pets>()
             .HasOne(p => p.Breed)
             .WithMany()
-            .HasForeignKey(p => p.breed_id);
+            .HasForeignKey(p => p.breed_id)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Pet -> Gender
         modelBuilder.Entity<Pets>()
             .HasOne(p => p.Gender)
             .WithMany()
-            .HasForeignKey(p => p.gender_id);
+            .HasForeignKey(p => p.gender_id)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Favorites -> User, Pet
+        modelBuilder.Entity<Favorites>()
+            .HasOne<Users>()
+            .WithMany()
+            .HasForeignKey(f => f.user_id)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Favorites>()
+            .HasOne<Pets>()
+            .WithMany()
+            .HasForeignKey(f => f.pet_id)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Reviews -> User, Shelter
+        modelBuilder.Entity<Reviews>()
+            .HasOne<Users>()
+            .WithMany()
+            .HasForeignKey(r => r.user_id)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Reviews>()
+            .HasOne<Shelters>()
+            .WithMany()
+            .HasForeignKey(r => r.shelter_id)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // AdoptionRequests -> User, Pet
+        modelBuilder.Entity<AdoptionRequests>()
+            .HasOne<Users>()
+            .WithMany()
+            .HasForeignKey(ar => ar.user_id)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<AdoptionRequests>()
+            .HasOne<Pets>()
+            .WithMany()
+            .HasForeignKey(ar => ar.pet_id)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
