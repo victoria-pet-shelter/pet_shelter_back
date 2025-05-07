@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 namespace Controllers;
 
 [ApiController]
-[Route("/[controller]")]
+[Route("/")]
 public class AuthController : ControllerBase
 {
     private readonly AppDbContext _context;

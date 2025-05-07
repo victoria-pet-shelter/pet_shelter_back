@@ -44,6 +44,10 @@ namespace main.Migrations
 
                     b.HasKey("id");
 
+                    b.HasIndex("pet_id");
+
+                    b.HasIndex("user_id");
+
                     b.ToTable("AdoptionRequests");
                 });
 
@@ -98,6 +102,10 @@ namespace main.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("id");
+
+                    b.HasIndex("pet_id");
+
+                    b.HasIndex("user_id");
 
                     b.ToTable("Favorites");
                 });
@@ -225,6 +233,10 @@ namespace main.Migrations
 
                     b.HasKey("id");
 
+                    b.HasIndex("shelter_id");
+
+                    b.HasIndex("user_id");
+
                     b.ToTable("Reviews");
                 });
 
@@ -294,7 +306,7 @@ namespace main.Migrations
                     b.ToTable("Species");
                 });
 
-            modelBuilder.Entity("Models.User", b =>
+            modelBuilder.Entity("Models.Users", b =>
                 {
                     b.Property<Guid>("id")
                         .ValueGeneratedOnAdd()
@@ -321,6 +333,36 @@ namespace main.Migrations
                     b.HasKey("id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("Models.AdoptionRequests", b =>
+                {
+                    b.HasOne("Models.Pets", null)
+                        .WithMany()
+                        .HasForeignKey("pet_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Models.Users", null)
+                        .WithMany()
+                        .HasForeignKey("user_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Models.Favorites", b =>
+                {
+                    b.HasOne("Models.Pets", null)
+                        .WithMany()
+                        .HasForeignKey("pet_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Models.Users", null)
+                        .WithMany()
+                        .HasForeignKey("user_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Models.Pets", b =>
@@ -358,9 +400,24 @@ namespace main.Migrations
                     b.Navigation("Species");
                 });
 
+            modelBuilder.Entity("Models.Reviews", b =>
+                {
+                    b.HasOne("Models.Shelters", null)
+                        .WithMany()
+                        .HasForeignKey("shelter_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Models.Users", null)
+                        .WithMany()
+                        .HasForeignKey("user_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Models.Shelters", b =>
                 {
-                    b.HasOne("Models.User", "Owner")
+                    b.HasOne("Models.Users", "Owner")
                         .WithMany("Shelters")
                         .HasForeignKey("shelter_owner_id")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -369,7 +426,7 @@ namespace main.Migrations
                     b.Navigation("Owner");
                 });
 
-            modelBuilder.Entity("Models.User", b =>
+            modelBuilder.Entity("Models.Users", b =>
                 {
                     b.Navigation("Shelters");
                 });
