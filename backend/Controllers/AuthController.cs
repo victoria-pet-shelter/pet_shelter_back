@@ -95,18 +95,18 @@ public class AuthController : ControllerBase
     // Login endpoint
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] Users loginRequest)
-    {   
+    {
         // Validation block
         // Check if the user is null or empty
-        if (string.IsNullOrEmpty(loginRequest.email))
+        if (loginRequest.email == null || loginRequest.email.Trim() == "")
         {
             return BadRequest("Email must be provided.");
         }
-        else if (string.IsNullOrEmpty(loginRequest.password))
+        else if (loginRequest.password == null || loginRequest.password.Trim() == "")
         {
             return BadRequest("Password must be provided.");
         }
-        
+
         // Have a user with these email
         var user = await _context.Users.FirstOrDefaultAsync(u => u.email == loginRequest.email);
         if (user == null)
@@ -124,6 +124,13 @@ public class AuthController : ControllerBase
         string token = _jwtService.GenerateToken(user.id, user.role ?? "user");
 
         // Return token to client
-        return Ok(new { token = token });
+        return Ok(new
+        {
+            token = token,
+            id = user.id,
+            name = user.name,
+            email = user.email,
+            role = user.role
+        });
     }
 }
