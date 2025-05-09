@@ -45,7 +45,7 @@ make
 Open in the browser:
 
 ```
-http: // localhost: 5000/swagger
+http://localhost:5000/swagger
 ```
 
 There you can send `post /register` or` post /login` and get a jwt-token.
