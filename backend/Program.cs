@@ -10,7 +10,7 @@ using DotNetEnv;
 using Config;
 
 Console.OutputEncoding = Encoding.UTF8;
-Env.Load(); // Load .env
+Env.Load(Path.Combine(AppContext.BaseDirectory, ".env")); // Load .env
 
 var builder = WebApplication.CreateBuilder(args);
 
