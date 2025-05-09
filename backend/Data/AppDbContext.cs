@@ -4,12 +4,7 @@ using Models; // Models.cs
 
 public class AppDbContext : DbContext
 {
-    private readonly string _connectionString;
-
-    public AppDbContext(string connectionString)
-    {
-        _connectionString = connectionString;
-    }
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     public DbSet<Users> Users { get; set; }
     public DbSet<Roles> Roles { get; set; }
@@ -23,11 +18,6 @@ public class AppDbContext : DbContext
     public DbSet<Favorites> Favorites { get; set; }
     public DbSet<News> News { get; set; }
     public DbSet<Reviews> Reviews { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder options)
-    {
-        options.UseNpgsql(_connectionString);
-    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

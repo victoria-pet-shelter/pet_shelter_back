@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using DotNetEnv;
@@ -34,6 +35,7 @@ try
         using var cmd = new Npgsql.NpgsqlCommand("SELECT 1", testConnection);
         cmd.ExecuteScalar();
         Console.WriteLine("✅ Database connection test passed.");
+        Console.WriteLine("Host connection on: http://localhost:5000");
     }
 
     // Add DbContext with connection string
@@ -62,9 +64,10 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["JWT:Issuer"],
-        ValidAudience = builder.Configuration["JWT:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]!))
+        ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER"),
+        ValidAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY")!))
     };
 });
 
@@ -77,9 +80,14 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // Logging closed 
-builder.Logging.ClearProviders();
+// builder.Logging.ClearProviders();
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
 
 app.UseSwagger();
 app.UseSwaggerUI();
