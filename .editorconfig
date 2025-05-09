@@ -13,7 +13,7 @@ insert_final_newline = true
 indent_style = space
 indent_size = 4
 
-# C# проекты и конфигурации
+# .NET
 [*.csproj]
 [*.sln]
 [*.props]
@@ -38,14 +38,14 @@ indent_size = 2
 indent_style = space
 indent_size = 2
 
-# YAML и env-файлы
+# YAML и env-files
 [*.yml]
 [*.yaml]
 [*.env]
 indent_style = space
 indent_size = 2
 
-# Makefile (только табы!)
+# Makefile
 [Makefile]
 indent_style = tab
 
