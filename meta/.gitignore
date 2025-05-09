@@ -1,0 +1,7 @@
+backend/bin/
+backend/obj/
+backend/.env
+.vscode/
+*.user
+*.suo
+*.log
