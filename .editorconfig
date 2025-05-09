@@ -1,0 +1,60 @@
+﻿root = true
+
+# EditorConfig is awesome: https://EditorConfig.org
+
+[*]
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# C#
+[*.cs]
+indent_style = space
+indent_size = 4
+
+# C# проекты и конфигурации
+[*.csproj]
+[*.sln]
+[*.props]
+[*.targets]
+[*.config]
+indent_style = space
+indent_size = 2
+
+# JavaScript, TypeScript, JSON
+[*.js]
+[*.ts]
+[*.jsx]
+[*.tsx]
+[*.json]
+indent_style = space
+indent_size = 2
+
+# HTML, CSS
+[*.html]
+[*.css]
+[*.scss]
+indent_style = space
+indent_size = 2
+
+# YAML и env-файлы
+[*.yml]
+[*.yaml]
+[*.env]
+indent_style = space
+indent_size = 2
+
+# Makefile (только табы!)
+[Makefile]
+indent_style = tab
+
+# Docker
+[Dockerfile]
+indent_style = space
+indent_size = 2
+
+# Markdown
+[*.md]
+trim_trailing_whitespace = false
+insert_final_newline = true
