@@ -1,19 +1,18 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.Configuration;
+using DotNetEnv;
 
 public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
     public AppDbContext CreateDbContext(string[] args)
     {
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(Path.Combine(Directory.GetCurrentDirectory())) // путь к appsettings.json
-            .AddJsonFile("appsettings.json")
-            .Build();
+        Env.Load(); // Load .env
+
+        var connectionString = $"Host={Environment.GetEnvironmentVariable("DB_HOST")};Database={Environment.GetEnvironmentVariable("DB_NAME")};Username={Environment.GetEnvironmentVariable("DB_USER")};Password={Environment.GetEnvironmentVariable("DB_PASSWORD")}";
 
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-        optionsBuilder.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
+        optionsBuilder.UseNpgsql(connectionString);
 
-        return new AppDbContext(configuration);
+        return new AppDbContext(connectionString);
     }
 }

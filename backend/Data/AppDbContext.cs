@@ -4,11 +4,11 @@ using Models; // Models.cs
 
 public class AppDbContext : DbContext
 {
-    private readonly IConfiguration _configuration;
+    private readonly string _connectionString;
 
-    public AppDbContext(IConfiguration configuration)
+    public AppDbContext(string connectionString)
     {
-        _configuration = configuration;
+        _connectionString = connectionString;
     }
 
     public DbSet<Users> Users { get; set; }
@@ -26,8 +26,7 @@ public class AppDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
-        var connectionString = _configuration.GetConnectionString("DefaultConnection");
-        options.UseNpgsql(connectionString);
+        options.UseNpgsql(_connectionString);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

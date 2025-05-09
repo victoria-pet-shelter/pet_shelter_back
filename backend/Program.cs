@@ -1,25 +1,49 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using DotNetEnv;
 using Config;
 
+Console.OutputEncoding = Encoding.UTF8;
+Env.Load(); // Load .env
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Connection string
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-if (string.IsNullOrEmpty(connectionString))
+try
 {
-    Console.WriteLine("⚠️ Connection string not set.");
+    // Check environment variables
+    var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? "";
+    var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? "";
+    var dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? "";
+    var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "";
+
+    if (string.IsNullOrWhiteSpace(dbHost) || string.IsNullOrWhiteSpace(dbName) || string.IsNullOrWhiteSpace(dbUser))
+        throw new Exception("One or more database environment variables are missing. \nPlease check DB_HOST, DB_NAME, DB_USER, DB_PASSWORD in your .env file.");
+
+    var connectionString = $"Host={dbHost};Database={dbName};Username={dbUser};Password={dbPassword}";
+
+    // Test database connection
+    using (var testConnection = new Npgsql.NpgsqlConnection(connectionString))
+    {
+        testConnection.Open();
+        using var cmd = new Npgsql.NpgsqlCommand("SELECT 1", testConnection);
+        cmd.ExecuteScalar();
+        Console.WriteLine("✅ Database connection test passed.");
+    }
+
+    // Add DbContext with connection string
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseNpgsql(connectionString));
 }
-else
+catch (Exception ex)
 {
-    Console.WriteLine("✅ Connection string:" + connectionString);
+    Console.WriteLine("❌ Error message: " + ex.GetBaseException().Message);
+    return;
 }
 
 // JWT-service
@@ -45,8 +69,8 @@ builder.Services.AddAuthentication(options =>
 });
 
 // Connect to PostgreSQL
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
+// builder.Services.AddDbContext<AppDbContext>(options =>
+//     options.UseNpgsql(connectionString));
 
 // Controllers и Swagger
 builder.Services.AddControllers();
@@ -55,6 +79,9 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Pet Shelter API", Version = "v1" });
 });
+
+// Logging closed 
+builder.Logging.ClearProviders();
 
 var app = builder.Build();
 
