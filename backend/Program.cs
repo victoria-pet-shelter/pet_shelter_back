@@ -68,10 +68,6 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Connect to PostgreSQL
-// builder.Services.AddDbContext<AppDbContext>(options =>
-//     options.UseNpgsql(connectionString));
-
 // Controllers и Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

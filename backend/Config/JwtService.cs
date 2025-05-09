@@ -25,7 +25,7 @@ public class JwtService
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
     };
 
-        // Получаем из .env напрямую
+        // Get the key and issuer from environment variables
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY")!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
