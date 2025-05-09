@@ -34,32 +34,18 @@ Jwt_expire_minutes = 60
 
 ## Project launch
 
-### 1. Assembly
+In the terminal on folder /meta:
 
-`` `Bash
-Dotnet Build
-`` `
-
-### 2.
-
-`` `Bash
-Dotnet Ef Database Update
-`` `
-
-### 3. Launch API
-
-`` `Bash
-Make # or
-
-Dotnet Run --Project Backend
-`` `
+```Makefile
+make
+```
 
 ### 4. Swagger UI
 
 Open in the browser:
 
-`` `
+```
 http: // localhost: 5000/swagger
-`` `
+```
 
 There you can send `post /register` or` post /login` and get a jwt-token.
