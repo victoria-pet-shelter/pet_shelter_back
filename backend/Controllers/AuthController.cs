@@ -1,8 +1,8 @@
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 using Models;
 using Config;
-using Microsoft.Extensions.Configuration;
 using Dtos;
 
 namespace Controllers;
@@ -11,12 +11,12 @@ namespace Controllers;
 [Route("/")]
 public class AuthController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly AppDbContext db;
     private readonly JwtService _jwtService;
 
-    public AuthController(AppDbContext context, IConfiguration configuration)
+    public AuthController(AppDbContext db, IConfiguration configuration)
     {
-        _context = context;
+        this.db = db;
         _jwtService = new JwtService(configuration);
     }
 
@@ -39,16 +39,21 @@ public class AuthController : ControllerBase
 
         if (!System.Text.RegularExpressions.Regex.IsMatch(user.email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
             return BadRequest("Email is not valid.");
+
         if (!System.Text.RegularExpressions.Regex.IsMatch(user.password, @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{6,}$"))
             return BadRequest("Password must contain at least one uppercase letter, one lowercase letter, and one number.");
+
         if (!System.Text.RegularExpressions.Regex.IsMatch(user.name, @"^[a-zA-Z0-9]+$"))
             return BadRequest("Username must contain only letters and numbers.");
 
-        var existingUserName = await _context.Users.FirstOrDefaultAsync(u => u.name == user.name);
+        if (string.IsNullOrEmpty(user.role) || (user.role != "user" && user.role != "shelter_owner"))
+            return BadRequest("Role must be either 'user' or 'shelter_owner'.");
+
+        var existingUserName = await db.Users.FirstOrDefaultAsync(u => u.name == user.name);
         if (existingUserName != null)
             return BadRequest("Username already exists.");
 
-        var existingUserEmail = await _context.Users.FirstOrDefaultAsync(u => u.email == user.email);
+        var existingUserEmail = await db.Users.FirstOrDefaultAsync(u => u.email == user.email);
         if (existingUserEmail != null)
             return BadRequest("Email already exists.");
 
@@ -58,11 +63,11 @@ public class AuthController : ControllerBase
             name = user.name,
             email = user.email,
             password = BCrypt.Net.BCrypt.HashPassword(user.password),
-            role = "user"
+            role = user.role
         };
 
-        await _context.Users.AddAsync(newUser);
-        await _context.SaveChangesAsync();
+        await db.Users.AddAsync(newUser);
+        await db.SaveChangesAsync();
 
         return Ok("User registered successfully.");
     }
@@ -75,7 +80,7 @@ public class AuthController : ControllerBase
         if (loginRequest.password == null || loginRequest.password.Trim() == "")
             return BadRequest("Password must be provided.");
 
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.email == loginRequest.email);
+        var user = await db.Users.FirstOrDefaultAsync(u => u.email == loginRequest.email);
         if (user == null)
             return Unauthorized("Incorrect email or password.");
 
