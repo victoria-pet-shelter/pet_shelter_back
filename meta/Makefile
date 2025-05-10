@@ -1,14 +1,14 @@
 PROJECT = ../backend
 
 run:
-	dotnet run --project $(PROJECT)
+	@dotnet run --project $(PROJECT)
 
 build:
 	dotnet build $(PROJECT)
 
 clean:
-	rd /s /q $(PROJECT)\bin && rd /s /q $(PROJECT)\obj || echo Clean complete
-	dotnet restore $(PROJECT)
+	@rd /s /q $(PROJECT)\bin && rd /s /q $(PROJECT)\obj || echo Clean complete
+	@dotnet restore $(PROJECT)
 
 migrate:
 	dotnet ef database update --project $(PROJECT)

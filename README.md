@@ -17,15 +17,15 @@ Pet Shelter is a web application for pets in shelters, working with applications
 At the root of the folder `Backend/` `.env` file should lie:
 
 ```ENV
-Db_host = localhost
-Db_name = pet_shelter
-Db_user = postgres
-Db_password = your_password
+DB_HOST = localhost
+DB_NAME = pet_shelter
+DB_USER = postgres
+DB_PASSWORD = your_password
 
 JWT_KEY = your_JWT_SECRET_KEY
-Jwt_issuer = Petshelter
-JWT_AUDEENCE = PetShelterClient
-Jwt_expire_minutes = 60
+JWT_ISSUER = Petshelter
+JWT_AUDIENCE = PetShelterClient
+JWT_EXPIRE_MINUTES = 60
 ```
 
 > Replace `your_password` and` your_jwt_secret_key` to your meanings.

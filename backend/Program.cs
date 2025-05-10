@@ -80,7 +80,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // Logging closed 
-// builder.Logging.ClearProviders();
+builder.Logging.ClearProviders();
 
 var app = builder.Build();
 
