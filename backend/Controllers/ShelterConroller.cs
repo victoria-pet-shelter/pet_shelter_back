@@ -1,163 +1,158 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Models;
-using Dtos;
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Security.Claims;
+using Models;
+using Dtos;
+using Validation;
 
-namespace Controllers
+namespace Controllers;
+
+[ApiController]
+[Route("shelters")]
+public class SheltersController : ControllerBase
 {
-    [ApiController]
-    [Route("shelters")]
-    public class SheltersController : ControllerBase
+    private readonly AppDbContext db;
+
+    public SheltersController(AppDbContext dbContext)
     {
-        private readonly AppDbContext db;
+        db = dbContext;
+    }
 
-        public SheltersController(AppDbContext db)
+    private Guid? GetUserId()
+    {
+        string? userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        Guid parsedId;
+        bool isValid = Guid.TryParse(userIdString, out parsedId);
+
+        if (isValid)
+            return parsedId;
+        else
+            return null;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    {
+        List<Shelters> shelters = await db.Shelters
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return Ok(shelters);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        Shelters? shelter = await db.Shelters
+            .Include(s => s.Owner)
+            .FirstOrDefaultAsync(s => s.id == id);
+
+        if (shelter == null)
+            return NotFound("Shelter not found.");
+
+        return Ok(shelter);
+    }
+
+    [Authorize(Roles = "shelter_owner")]
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] ShelterCreateDto dto)
+    {
+        ShelterValidator validator = new ShelterValidator();
+        Dictionary<string, string> errors = validator.Validate(dto);
+
+        if (errors.Count > 0)
+            return BadRequest(new { errors });
+
+        Guid? userId = GetUserId();
+        if (userId == null)
+            return Unauthorized();
+
+        try
         {
-            this.db = db;
-        }
-
-        // Get all shelters
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-            List<Shelters> shelters = await db.Shelters.ToListAsync();
-            return Ok(shelters);
-        }
-
-        // Get a shelter by id
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(Guid id)
-        {
-            Shelters shelter = await db.Shelters.FindAsync(id);
-
-            if (shelter == null)
+            Shelters newShelter = new Shelters
             {
-                return NotFound("Shelter not found.");
-            }
+                id = Guid.NewGuid(),
+                shelter_owner_id = userId.Value,
+                name = dto.name,
+                address = dto.address,
+                phone = dto.phone,
+                email = dto.email,
+                description = dto.description,
+                created_at = DateTime.UtcNow
+            };
 
-            return Ok(shelter);
+            await db.Shelters.AddAsync(newShelter);
+            await db.SaveChangesAsync();
+
+            return Ok(newShelter);
         }
+        catch (Exception ex)
+            return Problem("Error: " + ex.Message);
+    }
 
-        // Create shelter (Only shelter_owner)
-        [Authorize(Roles = "shelter_owner")]
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] ShelterCreateDto dto)
+    [Authorize(Roles = "shelter_owner")]
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] ShelterUpdateDto dto)
+    {
+        Shelters? shelter = await db.Shelters.FindAsync(id);
+        if (shelter == null)
+            return NotFound("Shelter not found.");
+        
+
+        Guid? userId = GetUserId();
+        if (userId == null || shelter.shelter_owner_id != userId.Value)
+            return Forbid();
+
+        ShelterValidator validator = new ShelterValidator();
+        Dictionary<string, string> errors = validator.Validate(dto);
+
+        if (errors.Count > 0)
+            return BadRequest(new { errors });
+
+        try
         {
-            string? userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userIdString))
-            {
-                return Unauthorized();
-            }
-
-            Guid userId;
-            bool parsed = Guid.TryParse(userIdString, out userId);
-
-            if (!parsed)
-            {
-                return Unauthorized();
-            }
-
-            Shelters shelter = new Shelters();
-            shelter.id = Guid.NewGuid();
-            shelter.shelter_owner_id = userId;
             shelter.name = dto.name;
             shelter.address = dto.address;
             shelter.phone = dto.phone;
             shelter.email = dto.email;
             shelter.description = dto.description;
-            shelter.created_at = DateTime.UtcNow;
-
-            db.Shelters.Add(shelter);
-            await db.SaveChangesAsync();
-
-            return Ok(shelter);
-        }
-
-        // Update shelter (Only owner)
-        [Authorize(Roles = "shelter_owner")]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] ShelterUpdateDto dto)
-        {
-            Shelters shelter = await db.Shelters.FindAsync(id);
-
-            if (shelter == null)
-            {
-                return NotFound("Shelter not found.");
-            }
-
-            string? userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userIdString))
-            {
-                return Unauthorized();
-            }
-
-            Guid userId;
-            bool parsed = Guid.TryParse(userIdString, out userId);
-
-            if (!parsed)
-            {
-                return Unauthorized();
-            }
-
-            if (shelter.shelter_owner_id != userId)
-            {
-                return Forbid();
-            }
-
-            shelter.name = dto.name;
-            shelter.address = dto.address;
-            shelter.phone = dto.phone;
-            shelter.email = dto.email;
-            shelter.description = dto.description;
 
             await db.SaveChangesAsync();
 
             return Ok(shelter);
         }
+        catch (Exception ex)
+            return Problem("Error: " + ex.Message);
+    }
 
-        // Delete shelter (Only owner)
-        [Authorize(Roles = "shelter_owner")]
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id)
+    [Authorize(Roles = "shelter_owner")]
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        Shelters? shelter = await db.Shelters.FindAsync(id);
+        if (shelter == null)
+            return NotFound("Shelter not found.");
+
+        Guid? userId = GetUserId();
+        if (userId == null || shelter.shelter_owner_id != userId.Value)
+            return Forbid();
+
+        try
         {
-            Shelters shelter = await db.Shelters.FindAsync(id);
-
-            if (shelter == null)
-            {
-                return NotFound("Shelter not found.");
-            }
-
-            string? userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userIdString))
-            {
-                return Unauthorized();
-            }
-
-            Guid userId;
-            bool parsed = Guid.TryParse(userIdString, out userId);
-
-            if (!parsed)
-            {
-                return Unauthorized();
-            }
-
-            if (shelter.shelter_owner_id != userId)
-            {
-                return Forbid();
-            }
-
             db.Shelters.Remove(shelter);
             await db.SaveChangesAsync();
 
-            return Ok("Shelter deleted.");
+            return Ok(new { message = "Shelter deleted." });
+        }
+        catch (Exception ex)
+        {
+            return Problem("Error: " + ex.Message);
         }
     }
 }

@@ -86,7 +86,7 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Введите JWT токен. Пример: Bearer {ваш_токен}"
+        Description = "Enter JWT token. Example: Bearer {your_token}"
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -104,7 +104,6 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-
 
 // Logging closed 
 // builder.Logging.ClearProviders();
