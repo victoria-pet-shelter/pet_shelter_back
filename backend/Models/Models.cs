@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Models;
 
 public class Users
@@ -6,18 +8,19 @@ public class Users
     public string? name { get; set; }
     public string? email { get; set; }
     public string? password { get; set; }
-    public string? role { get; set; }  // "admin"/"user"/"shelter_owner"
+    public string? role { get; set; }  // "admin"/"user"/"shelter"
     public string? phone { get; set; }
     public string? address { get; set; }
 
     // One user can own multiple shelters
+    [JsonIgnore]
     public List<Shelters>? Shelters { get; set; }
 }
 
 public class Roles
 {
     public int id { get; set; }
-    public string? name { get; set; } // admin/user/shelter_owner
+    public string? name { get; set; } // admin/user/shelter
 }
 
 public class Shelters
