@@ -9,6 +9,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using DotNetEnv;
 using Config;
+using System.Security.Claims;
 
 Console.OutputEncoding = Encoding.UTF8;
 Env.Load(Path.Combine(AppContext.BaseDirectory, ".env")); // Load .env
@@ -67,7 +68,9 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER"),
         ValidAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY")!))
+            Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY")!)),
+        RoleClaimType = ClaimTypes.Role,
+        NameClaimType = ClaimTypes.NameIdentifier
     };
 });
 
@@ -86,7 +89,7 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Введите JWT токен. Пример: Bearer {ваш_токен}"
+        Description = "Enter JWT token. Example: Bearer {your_token}"
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -104,7 +107,6 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-
 
 // Logging closed 
 // builder.Logging.ClearProviders();
