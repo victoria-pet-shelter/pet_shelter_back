@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Models;
 
 public class Users
@@ -11,6 +13,7 @@ public class Users
     public string? address { get; set; }
 
     // One user can own multiple shelters
+    [JsonIgnore]
     public List<Shelters>? Shelters { get; set; }
 }
 

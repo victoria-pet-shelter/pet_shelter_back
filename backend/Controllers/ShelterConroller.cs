@@ -135,10 +135,9 @@ public class SheltersController : ControllerBase
             return Problem("Error: " + ex.Message);
         }
     }
-
     [Authorize(Roles = "shelter_owner")]
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] ShelterUpdateDto dto)
+    [HttpPatch("{id}")]
+    public async Task<IActionResult> Patch(Guid id, [FromBody] ShelterUpdateDto dto)
     {
         Shelters? shelter = await db.Shelters.FindAsync(id);
         if (shelter == null)
@@ -149,18 +148,23 @@ public class SheltersController : ControllerBase
             return Forbid();
 
         ShelterValidator validator = new ShelterValidator();
-        Dictionary<string, string> errors = validator.Validate(dto);
+        Dictionary<string, string> errors = validator.Validate(dto, isPatch: true);
 
         if (errors.Count > 0)
             return BadRequest(new { errors });
 
         try
         {
-            shelter.name = dto.name;
-            shelter.address = dto.address;
-            shelter.phone = dto.phone;
-            shelter.email = dto.email;
-            shelter.description = dto.description;
+            if (dto.name != null)
+                shelter.name = dto.name;
+            if (dto.address != null)
+                shelter.address = dto.address;
+            if (dto.phone != null)
+                shelter.phone = dto.phone;
+            if (dto.email != null)
+                shelter.email = dto.email;
+            if (dto.description != null)
+                shelter.description = dto.description;
 
             await db.SaveChangesAsync();
 
@@ -171,7 +175,7 @@ public class SheltersController : ControllerBase
             return Problem("Error: " + ex.Message);
         }
     }
-
+    
     [Authorize(Roles = "shelter_owner")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
