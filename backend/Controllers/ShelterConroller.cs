@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Threading.Tasks;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Threading.Tasks;
+using Validation;
+using System;
 using Models;
 using Dtos;
-using Validation;
 
 namespace Controllers;
 
@@ -38,13 +38,51 @@ public class SheltersController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
+        if (page < 1)
+            page = 1;
+
+        // Default to 10 items per page if invalid
+        if (pageSize < 1)
+            pageSize = 10;
+
+        // Cap the page size to avoid abuse or performance issues
+        if (pageSize > 100)
+            pageSize = 100;
+
+        int totalCount = await db.Shelters.CountAsync();
+
+        // Calculate how many total pages there are
+        int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+        // Determine how many items to skip
+        int skipCount = (page - 1) * pageSize;
+
+        if (skipCount >= totalCount && totalCount > 0)
+        {
+            return NotFound(new
+            {
+                message = "Page not found.",
+                currentPage = page,
+                totalPages = totalPages
+            });
+        }
+
+        // Get the paginated data from the database
         List<Shelters> shelters = await db.Shelters
-            .Skip((page - 1) * pageSize)
+            .Skip(skipCount)
             .Take(pageSize)
             .ToListAsync();
 
-        return Ok(shelters);
+        return Ok(new
+        {
+            currentPage = page,
+            pageSize = pageSize,
+            totalCount = totalCount,
+            totalPages = totalPages,
+            shelters = shelters
+        });
     }
+
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
@@ -93,7 +131,9 @@ public class SheltersController : ControllerBase
             return Ok(newShelter);
         }
         catch (Exception ex)
+        {
             return Problem("Error: " + ex.Message);
+        }
     }
 
     [Authorize(Roles = "shelter_owner")]
@@ -103,7 +143,6 @@ public class SheltersController : ControllerBase
         Shelters? shelter = await db.Shelters.FindAsync(id);
         if (shelter == null)
             return NotFound("Shelter not found.");
-        
 
         Guid? userId = GetUserId();
         if (userId == null || shelter.shelter_owner_id != userId.Value)
@@ -128,7 +167,9 @@ public class SheltersController : ControllerBase
             return Ok(shelter);
         }
         catch (Exception ex)
+        {
             return Problem("Error: " + ex.Message);
+        }
     }
 
     [Authorize(Roles = "shelter_owner")]

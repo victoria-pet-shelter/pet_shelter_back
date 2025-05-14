@@ -24,8 +24,10 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] UserRegisterDto user)
     {
+        // Validation - > UserRegisterValidator.cs
         var validator = new UserRegisterValidator();
         var errors = validator.Validate(user);
+
         if (errors.Any())
             return BadRequest(new { errors });
 
@@ -60,9 +62,10 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] UserLoginDto loginRequest)
     {
+        // Validation - > UserLoginValidator.cs
         var validator = new UserLoginValidator();
         var errors = validator.Validate(loginRequest);
-        if (errors.Any()) 
+        if (errors.Any())
             return BadRequest(new { errors });
 
         try
