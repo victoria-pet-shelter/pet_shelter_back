@@ -9,6 +9,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using DotNetEnv;
 using Config;
+using System.Security.Claims;
 
 Console.OutputEncoding = Encoding.UTF8;
 Env.Load(Path.Combine(AppContext.BaseDirectory, ".env")); // Load .env
@@ -67,7 +68,9 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER"),
         ValidAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY")!))
+            Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY")!)),
+        RoleClaimType = ClaimTypes.Role,
+        NameClaimType = ClaimTypes.NameIdentifier
     };
 });
 
@@ -77,10 +80,36 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Pet Shelter API", Version = "v1" });
+
+    // Add helping JWT autorization
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter JWT token. Example: Bearer {your_token}"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
 });
 
 // Logging closed 
-builder.Logging.ClearProviders();
+// builder.Logging.ClearProviders();
 
 var app = builder.Build();
 

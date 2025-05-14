@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 using Models; // Models.cs
 
 public class AppDbContext : DbContext

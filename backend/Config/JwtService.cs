@@ -20,10 +20,11 @@ public class JwtService
     {
         var claims = new[]
         {
-        new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
-        new Claim(ClaimTypes.Role, role),
-        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-    };
+            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),    
+            new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
+            new Claim(ClaimTypes.Role, role),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
 
         // Get the key and issuer from environment variables
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY")!));
