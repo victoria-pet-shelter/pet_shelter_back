@@ -15,10 +15,10 @@ public class AuthController : ControllerBase
     private readonly AppDbContext db;
     private readonly JwtService _jwtService;
 
-    public AuthController(AppDbContext db, IConfiguration configuration)
+    public AuthController(AppDbContext db, JwtService jwtService)
     {
         this.db = db;
-        _jwtService = new JwtService(configuration);
+        _jwtService = jwtService;
     }
 
     [HttpPost("register")]

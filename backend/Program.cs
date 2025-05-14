@@ -9,6 +9,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using DotNetEnv;
 using Config;
+using System.Security.Claims;
 
 Console.OutputEncoding = Encoding.UTF8;
 Env.Load(Path.Combine(AppContext.BaseDirectory, ".env")); // Load .env
@@ -67,7 +68,8 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER"),
         ValidAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE"),
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY")!))
+            Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("JWT_KEY")!)),
+        RoleClaimType = ClaimTypes.Role
     };
 });
 
@@ -106,7 +108,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // Logging closed 
-builder.Logging.ClearProviders();
+// builder.Logging.ClearProviders();
 
 var app = builder.Build();
 
