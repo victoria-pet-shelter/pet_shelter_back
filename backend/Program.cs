@@ -6,10 +6,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using System.Security.Claims;
 using System.Text;
 using DotNetEnv;
 using Config;
-using System.Security.Claims;
 
 Console.OutputEncoding = Encoding.UTF8;
 Env.Load(Path.Combine(AppContext.BaseDirectory, ".env")); // Load .env

@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.EntityFrameworkCore;
 using DotNetEnv;
 
 public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>

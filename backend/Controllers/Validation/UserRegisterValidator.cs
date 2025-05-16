@@ -1,7 +1,8 @@
-using Dtos;
-using System;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Collections.Generic;
+using System;
+using Dtos;
+
 namespace Validation;
 
 public class UserRegisterValidator : IValidator<UserRegisterDto>
