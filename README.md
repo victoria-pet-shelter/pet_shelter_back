@@ -1,4 +1,4 @@
-# Pete Shelter Backend
+# Pet Shelter Backend
 
 Pet Shelter is a web application for pets in shelters, working with applications for the adoption and authorization of users. This is a backend-part on C# using ASP.NET Core and Entity Framework Core.
 
