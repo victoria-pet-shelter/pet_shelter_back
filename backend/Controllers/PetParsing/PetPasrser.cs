@@ -38,7 +38,7 @@ public class PetParser
                 var link = ad.QuerySelector("a")?.GetAttribute("href");
                 var fullLink = "https://www.ss.lv" + link;
 
-                var title = ad.TextContent?.Trim().Replace("\n", " ").Split("  ").FirstOrDefault() ?? "Без имени";
+                var title = ad.TextContent?.Trim().Replace("\n", " ").Split("  ").FirstOrDefault() ?? "Noname";
 
                 var img = ad.QuerySelector("img")?.GetAttribute("src");
                 var imgUrl = string.IsNullOrEmpty(img) ? null : "https://i.ss.lv" + img;
