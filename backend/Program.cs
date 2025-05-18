@@ -108,6 +108,12 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+// Pets Parsing
+builder.Services.AddHostedService<PetImportBackgroundService>();
+builder.Services.AddScoped<PetParser>();
+builder.Services.AddSingleton<MongoService>();
+builder.Services.AddHttpClient();
+
 // Logging closed 
 // builder.Logging.ClearProviders();
 
