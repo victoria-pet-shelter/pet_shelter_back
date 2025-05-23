@@ -74,6 +74,9 @@ public class Pets
     public string? image { get; set; }
     public DateTime created_at { get; set; }
     public Guid shelter_id { get; set; } // UUID of shelter
+    // For MongoDB
+    public string? external_url { get; set; }
+    public string? photo_id { get; set; }
 
     // Navigation properties
     public Shelters? Shelter { get; set; }

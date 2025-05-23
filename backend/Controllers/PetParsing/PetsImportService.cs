@@ -1,5 +1,6 @@
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using System.Threading.Tasks;
 using System.Threading;
 using Models;
@@ -41,7 +42,7 @@ public class PetImportBackgroundService : BackgroundService
                 Console.WriteLine($"❌ Error during import: {ex.Message}");
             }
 
-            await Task.Delay(TimeSpan.FromMinutes(60), stoppingToken); // every 60 minutes
+            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken); // every 60 minutes
         }
     }
 
@@ -79,6 +80,7 @@ public class PetImportBackgroundService : BackgroundService
             description = "Dates from website",
             created_at = DateTime.UtcNow
         };
+
         await db.Shelters.AddAsync(newShelter);
         await db.SaveChangesAsync();
         return newShelter;
