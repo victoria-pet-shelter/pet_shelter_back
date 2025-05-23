@@ -1,10 +1,11 @@
-using AngleSharp;
-using Models;
-using System.Net.Http;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System;
+using System.Net.Http;
 using MongoDB.Bson;
+using AngleSharp;
+using Models;
+using System;
+
 
 public class PetParser
 {
@@ -21,7 +22,7 @@ public class PetParser
     {
         List<Pets> result = new();
 
-        var url = "https://www.ss.lv/lv/animals/";
+        var url = "https://www.ss.lv/lv/animals/dogs";
         var client = _httpClientFactory.CreateClient();
         var html = await client.GetStringAsync(url);
 
@@ -32,6 +33,7 @@ public class PetParser
         var ads = document.QuerySelectorAll(".d1")
             .Where(e => e.QuerySelector("a") != null);
 
+        Console.WriteLine($"Found {ads.Count()} ads");
         foreach (var ad in ads)
         {
             try
@@ -39,7 +41,9 @@ public class PetParser
                 var link = ad.QuerySelector("a")?.GetAttribute("href");
                 var fullLink = "https://www.ss.lv" + link;
 
-                var title = ad.TextContent?.Trim().Replace("\n", " ").Split("  ").FirstOrDefault() ?? "Noname";
+                var fullText = ad.TextContent?.Trim().Replace("\n", " ").Replace("  ", " ") ?? "Без названия";
+                var shortTitle = fullText.Length > 100 ? fullText[..100] + "..." : fullText;
+
 
                 var img = ad.QuerySelector("img")?.GetAttribute("src");
                 var imgUrl = string.IsNullOrEmpty(img) ? null : "https://i.ss.lv" + img;
@@ -58,11 +62,14 @@ public class PetParser
                     description = "Imported from ss.lv",
                     shelter_id = shelterId,
                     created_at = DateTime.UtcNow,
+                    species_id = 1, // in the time for test
+                    breed_id = 1,   // in the time for test
+                    gender_id = 1,
                     external_url = fullLink,
                     photo_id = photoId?.ToString()
                 });
 
-                if (result.Count >= 10) break; // >= 10 pets
+                if (result.Count >= 100) break; // >= 100 pets
             }
             catch (Exception ex)
             {
