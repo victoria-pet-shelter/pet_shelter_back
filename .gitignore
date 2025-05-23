@@ -1,0 +1,10 @@
+backend/bin/
+backend/obj/
+backend/.env
+
+plan/Do.md
+
+.vscode/
+*.user
+*.suo
+*.log
