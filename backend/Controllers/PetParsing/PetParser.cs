@@ -1,83 +1,172 @@
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Linq;
 using System.Net.Http;
-using MongoDB.Bson;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using AngleSharp;
 using Models;
-using System;
-
+using MongoDB.Bson;
 
 public class PetParser
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly MongoService _mongoService;
+    private readonly AppDbContext _db;
 
-    public PetParser(IHttpClientFactory httpClientFactory, MongoService mongoService)
+    public PetParser(IHttpClientFactory httpClientFactory, MongoService mongoService, AppDbContext db)
     {
         _httpClientFactory = httpClientFactory;
         _mongoService = mongoService;
+        _db = db;
+        EnsureGendersExist().Wait();
+    }
+
+    private async Task EnsureGendersExist()
+    {
+        var existing = await _db.Genders.ToListAsync();
+        if (!existing.Any(g => g.id == 1))
+            await _db.Genders.AddAsync(new Genders { id = 1, name = "male" });
+        if (!existing.Any(g => g.id == 2))
+            await _db.Genders.AddAsync(new Genders { id = 2, name = "female" });
+
+        await _db.SaveChangesAsync();
     }
 
     public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId)
     {
         List<Pets> result = new();
-
-        var url = "https://www.ss.lv/lv/animals/dogs";
+        var page = 1;
         var client = _httpClientFactory.CreateClient();
-        var html = await client.GetStringAsync(url);
-
         var config = Configuration.Default.WithDefaultLoader();
         var context = BrowsingContext.New(config);
-        var document = await context.OpenAsync(req => req.Content(html));
 
-        var ads = document.QuerySelectorAll(".d1")
-            .Where(e => e.QuerySelector("a") != null);
-
-        Console.WriteLine($"Found {ads.Count()} ads");
-        foreach (var ad in ads)
+        while (result.Count < 100)
         {
-            try
+            var url = $"https://www.ss.lv/lv/animals/dogs/page{(page > 1 ? page.ToString() : "")}.html";
+            var html = await client.GetStringAsync(url);
+            var document = await context.OpenAsync(req => req.Content(html));
+            var ads = document.QuerySelectorAll(".d1").Where(e => e.QuerySelector("a") != null);
+
+            if (!ads.Any())
             {
-                var link = ad.QuerySelector("a")?.GetAttribute("href");
-                var fullLink = "https://www.ss.lv" + link;
+                Console.WriteLine("⚠️ No more ads found.");
+                break;
+            }
 
-                var fullText = ad.TextContent?.Trim().Replace("\n", " ").Replace("  ", " ") ?? "Без названия";
-                var shortTitle = fullText.Length > 100 ? fullText[..100] + "..." : fullText;
+            Console.WriteLine($"Found {ads.Count()} ads on page {page}");
 
-
-                var img = ad.QuerySelector("img")?.GetAttribute("src");
-                var imgUrl = string.IsNullOrEmpty(img) ? null : "https://i.ss.lv" + img;
-
-                ObjectId? photoId = null;
-                if (imgUrl != null)
+            foreach (var ad in ads)
+            {
+                try
                 {
-                    var imageBytes = await client.GetByteArrayAsync(imgUrl);
-                    photoId = await _mongoService.SaveImageAsync(imageBytes);
+                    var link = ad.QuerySelector("a")?.GetAttribute("href");
+                    if (string.IsNullOrEmpty(link)) continue;
+
+                    var fullLink = "https://www.ss.lv" + link;
+
+                    bool alreadyExists = await _db.Pets.AnyAsync(p => p.external_url == fullLink);
+                    if (alreadyExists)
+                    {
+                        Console.WriteLine($"⚠️ Skipping duplicate: {fullLink}");
+                        continue;
+                    }
+
+                    var petPageHtml = await client.GetStringAsync(fullLink);
+                    var petDoc = await context.OpenAsync(req => req.Content(petPageHtml));
+
+                    var breedText = petDoc.QuerySelector("td:has(span:contains('Šķirne:')) + td")?.TextContent?.Trim();
+                    var ageText = petDoc.QuerySelector("td:has(span:contains('Vecums:')) + td")?.TextContent?.Trim();
+                    var fullDescription = petDoc.QuerySelector("div[id^='msg_div_msg']")?.TextContent?.Trim();
+                    var imgElement = petDoc.QuerySelector("img[src*='/images/']")?.GetAttribute("src");
+                    var colorText = petDoc.QuerySelector("td:has(span:contains('Krāsa:')) + td")?.TextContent?.Trim();
+                    var healthText = petDoc.QuerySelector("td:has(span:contains('Veselība:')) + td")?.TextContent?.Trim();
+
+                    float ageInMonths = ParseAge(ageText);
+                    int breedId = await ResolveBreedIdAsync(breedText);
+                    int speciesId = 1;
+                    int genderId = ResolveGender(fullDescription);
+
+                    ObjectId? photoId = null;
+                    if (!string.IsNullOrEmpty(imgElement))
+                    {
+                        var imageUrl = "https:" + imgElement;
+                        var imageBytes = await client.GetByteArrayAsync(imageUrl);
+                        photoId = await _mongoService.SaveImageAsync(imageBytes);
+                    }
+
+                    var shortTitle = fullDescription != null && fullDescription.Length > 100
+                        ? fullDescription.Substring(0, 100) + "..."
+                        : fullDescription ?? "No name";
+                    Console.WriteLine($"⚠️ Image URL not found or failed: {imgElement}");
+
+                    result.Add(new Pets
+                    {
+                        id = Guid.NewGuid(),
+                        name = shortTitle,
+                        description = fullDescription,
+                        age = ageInMonths,
+                        breed_id = breedId,
+                        color = colorText,
+                        health = healthText,
+                        species_id = speciesId,
+                        gender_id = genderId,
+                        mongo_image_id = photoId?.ToString(),
+                        shelter_id = shelterId,
+                        created_at = DateTime.UtcNow,
+                        external_url = fullLink
+                    });
+                    Console.WriteLine($"✅ Added pet: {shortTitle}");
+
+                    if (result.Count >= 100) break;
                 }
-
-                result.Add(new Pets
+                catch (Exception ex)
                 {
-                    id = Guid.NewGuid(),
-                    name = title,
-                    description = "Imported from ss.lv",
-                    shelter_id = shelterId,
-                    created_at = DateTime.UtcNow,
-                    species_id = 1, // in the time for test
-                    breed_id = 1,   // in the time for test
-                    gender_id = 1,
-                    external_url = fullLink,
-                    photo_id = photoId?.ToString()
-                });
+                    Console.WriteLine("❌ Parse error: " + ex.Message);
+                    continue;
+                }
+            }
 
-                if (result.Count >= 100) break; // >= 100 pets
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("❌ Parse error: " + ex.Message);
-                continue;
-            }
+            page++;
         }
 
         return result;
+    }
+
+    private float ParseAge(string? ageText)
+    {
+        if (string.IsNullOrWhiteSpace(ageText))
+            return 0;
+
+        var parts = ageText.ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 2)
+        {
+            if (parts[1].StartsWith("mēn")) return float.Parse(parts[0]);
+            if (parts[1].StartsWith("gad")) return float.Parse(parts[0]) * 12;
+        }
+
+        return 0;
+    }
+
+    private async Task<int> ResolveBreedIdAsync(string? breedText)
+    {
+        if (string.IsNullOrEmpty(breedText)) return 1;
+
+        var breed = await _db.Breeds.FirstOrDefaultAsync(b => b.name.ToLower() == breedText.ToLower());
+        if (breed != null) return breed.id;
+
+        return 1;
+    }
+
+    private int ResolveGender(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return 1;
+        var lower = text.ToLower();
+
+        if (Regex.IsMatch(lower, @"\b(девочка|meitene|female|сука)\b")) return 2;
+        if (Regex.IsMatch(lower, @"\b(мальчик|puika|male|кобель)\b")) return 1;
+
+        return 1;
     }
 }
