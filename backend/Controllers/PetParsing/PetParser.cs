@@ -42,7 +42,7 @@ public class PetParser
         var config = Configuration.Default.WithDefaultLoader();
         var context = BrowsingContext.New(config);
 
-        while (result.Count < 100)
+        while (result.Count < 10)
         {
             var url = $"https://www.ss.lv/lv/animals/dogs/page{(page > 1 ? page.ToString() : "")}.html";
             var html = await client.GetStringAsync(url);
@@ -79,47 +79,71 @@ public class PetParser
                     var breedText = petDoc.QuerySelector("td:has(span:contains('Šķirne:')) + td")?.TextContent?.Trim();
                     var ageText = petDoc.QuerySelector("td:has(span:contains('Vecums:')) + td")?.TextContent?.Trim();
                     var fullDescription = petDoc.QuerySelector("div[id^='msg_div_msg']")?.TextContent?.Trim();
-                    var imgElement = petDoc.QuerySelector("img[src*='/images/']")?.GetAttribute("src");
                     var colorText = petDoc.QuerySelector("td:has(span:contains('Krāsa:')) + td")?.TextContent?.Trim();
                     var healthText = petDoc.QuerySelector("td:has(span:contains('Veselība:')) + td")?.TextContent?.Trim();
 
-                    float ageInMonths = ParseAge(ageText);
-                    int breedId = await ResolveBreedIdAsync(breedText);
-                    int speciesId = 1;
-                    int genderId = ResolveGender(fullDescription);
+                    // попытка вытащить URL изображения
+                    string? imgElement = petDoc.QuerySelector("img[src*='/images/']")?.GetAttribute("src");
+
+                    // если img нет, пробуем достать background-image из стиля
+                    if (string.IsNullOrEmpty(imgElement))
+                    {
+                        var divWithBackground = petDoc.QuerySelector("div[style*='background-image']");
+                        var style = divWithBackground?.GetAttribute("style");
+
+                        if (!string.IsNullOrEmpty(style))
+                        {
+                            var match = Regex.Match(style, @"url\(['""]?(.*?)['""]?\)");
+                            if (match.Success)
+                            {
+                                imgElement = match.Groups[1].Value;
+                            }
+                        }
+                    }
 
                     ObjectId? photoId = null;
                     if (!string.IsNullOrEmpty(imgElement))
                     {
-                        var imageUrl = "https:" + imgElement;
-                        var imageBytes = await client.GetByteArrayAsync(imageUrl);
-                        photoId = await _mongoService.SaveImageAsync(imageBytes);
+                        try
+                        {
+                            var imageUrl = imgElement.StartsWith("http") ? imgElement : "https:" + imgElement;
+                            var imageBytes = await client.GetByteArrayAsync(imageUrl);
+                            photoId = await _mongoService.SaveImageAsync(imageBytes);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"⚠️ Failed to fetch image: {imgElement} | {ex.Message}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("⚠️ No image found on the page.");
                     }
 
                     var shortTitle = fullDescription != null && fullDescription.Length > 100
                         ? fullDescription.Substring(0, 100) + "..."
                         : fullDescription ?? "No name";
-                    Console.WriteLine($"⚠️ Image URL not found or failed: {imgElement}");
 
                     result.Add(new Pets
                     {
                         id = Guid.NewGuid(),
                         name = shortTitle,
                         description = fullDescription,
-                        age = ageInMonths,
-                        breed_id = breedId,
+                        age = ParseAge(ageText),
+                        breed_id = await ResolveBreedIdAsync(breedText),
                         color = colorText,
                         health = healthText,
-                        species_id = speciesId,
-                        gender_id = genderId,
+                        species_id = 1,
+                        gender_id = ResolveGender(fullDescription),
                         mongo_image_id = photoId?.ToString(),
                         shelter_id = shelterId,
                         created_at = DateTime.UtcNow,
                         external_url = fullLink
                     });
+
                     Console.WriteLine($"✅ Added pet: {shortTitle}");
 
-                    if (result.Count >= 100) break;
+                    if (result.Count >= 10) break;
                 }
                 catch (Exception ex)
                 {
@@ -127,7 +151,7 @@ public class PetParser
                     continue;
                 }
             }
-
+            
             page++;
         }
 

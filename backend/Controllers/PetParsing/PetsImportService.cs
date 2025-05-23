@@ -36,6 +36,8 @@ public class PetImportBackgroundService : BackgroundService
                 await db.SaveChangesAsync();
 
                 Console.WriteLine($"✅ Imported {pets.Count} pets at {DateTime.Now}");
+                int totalPets = await db.Pets.CountAsync();
+                Console.WriteLine($"✅ Total: [{totalPets}] pets in database.");
             }
             catch (Exception ex)
             {
