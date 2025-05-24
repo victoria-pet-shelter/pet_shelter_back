@@ -7,6 +7,11 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
+using MongoServiceNamespace;
+using ResolveBreedId;
+using ResolveGender;
+using ResolvePrice;
+using ResolveAge;
 using System.Text;
 using DotNetEnv;
 using Config;
@@ -111,6 +116,7 @@ builder.Services.AddSwaggerGen(c =>
 // Pets Parsing
 builder.Services.AddHostedService<PetImportBackgroundService>();
 builder.Services.AddScoped<PetParser>();
+builder.Services.AddScoped<BreedResolver>();
 builder.Services.AddSingleton<MongoService>();
 builder.Services.AddHttpClient();
 

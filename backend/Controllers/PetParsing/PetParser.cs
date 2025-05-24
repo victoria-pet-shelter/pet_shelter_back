@@ -8,23 +8,23 @@ using System.Threading.Tasks;
 using AngleSharp;
 using Models;
 using MongoDB.Bson;
-using ResolvePrice;
 using ResolveAge;
 using ResolveGender;
-using ResolveBreedId;
-using ResolveSpeciesId;
+using ResolvePrice;
 
 public class PetParser
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly MongoService _mongoService;
     private readonly AppDbContext _db;
+    private readonly BreedResolver _breedResolver;
 
-    public PetParser(IHttpClientFactory httpClientFactory, MongoService mongoService, AppDbContext db)
+    public PetParser(IHttpClientFactory httpClientFactory, MongoService mongoService, AppDbContext db, BreedResolver breedResolver)
     {
         _httpClientFactory = httpClientFactory;
         _mongoService = mongoService;
         _db = db;
+        _breedResolver = breedResolver;
         EnsureGendersExist().Wait();
     }
 
@@ -100,7 +100,7 @@ public class PetParser
                     var healthText = GetFieldValue(petDoc, "Veselība:");
                     Console.WriteLine($"[DEBUG] healthText: {healthText}");
 
-                    var priceText = ExtractPrice(fullDescription);
+                    var priceText = PriceResolver.ExtractPrice(fullDescription);
                     Console.WriteLine($"[DEBUG] cena: {priceText}");
 
                     string? imgElement = petDoc.QuerySelector("img[src*='/images/']")?.GetAttribute("src");
@@ -141,18 +141,17 @@ public class PetParser
                         id = Guid.NewGuid(),
                         name = shortTitle,
                         description = fullDescription,
-                        age = ParseAge(ageText),
-                        breed_id = await ResolveBreedIdAsync(breedText),
+                        age = AgeResolver.ParseAge(ageText),
+                        breed_id = await _breedResolver.ResolveBreedIdAsync(breedText),
                         color = colorText,
                         health = healthText,
-                        species_id = ResolveSpeciesId(fullDescription),
-                        gender_id = ResolveGender(fullDescription),
+                        species_id = 0, // species handled by breed
+                        gender_id = GenderResolver.ResolveGender(fullDescription),
                         mongo_image_id = photoId?.ToString(),
                         shelter_id = shelterId,
                         created_at = DateTime.UtcNow,
                         external_url = fullLink,
                         cena = priceText
-
                     });
 
                     Console.WriteLine($"✅ Added pet: {shortTitle}");
