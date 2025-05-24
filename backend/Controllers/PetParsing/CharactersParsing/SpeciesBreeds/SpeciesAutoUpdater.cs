@@ -27,5 +27,7 @@ public class SpeciesAutoUpdater : BackgroundService
         {
             _logger.LogError(ex, "❌ Auto-update of Species_Breeds.json failed.");
         }
+        
+        await Task.Delay(TimeSpan.FromHours(12), stoppingToken);
     }
 }
