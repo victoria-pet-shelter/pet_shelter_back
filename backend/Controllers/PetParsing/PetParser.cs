@@ -1,14 +1,13 @@
-// Improved PetParser.cs
-using AngleSharp;
 using Microsoft.EntityFrameworkCore;
-using Models;
-using MongoDB.Bson;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AngleSharp;
+using Models;
+using MongoDB.Bson;
 
 public class PetParser
 {
@@ -31,19 +30,19 @@ public class PetParser
             await _db.Genders.AddAsync(new Genders { id = 1, name = "male" });
         if (!existing.Any(g => g.id == 2))
             await _db.Genders.AddAsync(new Genders { id = 2, name = "female" });
+
         await _db.SaveChangesAsync();
     }
 
-    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId)
+    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 1000)
     {
         List<Pets> result = new();
+        int page = 1;
         var client = _httpClientFactory.CreateClient();
         var config = Configuration.Default.WithDefaultLoader();
         var context = BrowsingContext.New(config);
-        int page = 1;
-        int skipped = 0;
 
-        while (result.Count < 10 && skipped < 50)
+        while (result.Count < max)
         {
             var url = $"https://www.ss.lv/lv/animals/dogs/page{(page > 1 ? page.ToString() : "")}.html";
             var html = await client.GetStringAsync(url);
@@ -60,61 +59,72 @@ public class PetParser
 
             foreach (var ad in ads)
             {
-                var link = ad.QuerySelector("a")?.GetAttribute("href");
-                if (string.IsNullOrWhiteSpace(link)) continue;
-
-                if (link.Contains("accessories") || link.Contains("studies") || link.Contains("feed") || link.Contains("refudes"))
-                {
-                    Console.WriteLine("⚠️ Skipped non-pet ad: " + link);
-                    skipped++;
-                    continue;
-                }
-
-                var fullLink = "https://www.ss.lv" + link;
-                if (await _db.Pets.AnyAsync(p => p.external_url == fullLink))
-                {
-                    Console.WriteLine("⚠️ Duplicate ad: " + fullLink);
-                    skipped++;
-                    continue;
-                }
-
                 try
                 {
-                    var petHtml = await client.GetStringAsync(fullLink);
-                    var petDoc = await context.OpenAsync(req => req.Content(petHtml));
-
-                    var breedText = petDoc.QuerySelector("td:has(span:contains('Šķirne:')) + td")?.TextContent?.Trim();
-                    var ageText = petDoc.QuerySelector("td:has(span:contains('Vecums:')) + td")?.TextContent?.Trim();
-                    var fullDescription = petDoc.QuerySelector("div[id^='msg_div_msg']")?.TextContent?.Trim();
-                    var colorText = petDoc.QuerySelector("td:has(span:contains('Krāsa:')) + td")?.TextContent?.Trim();
-                    var healthText = petDoc.QuerySelector("td:has(span:contains('Veselība:')) + td")?.TextContent?.Trim();
-
-                    string? imgUrl = petDoc.QuerySelector("img[src*='/images/']")?.GetAttribute("src") ??
-                                     petDoc.QuerySelector("meta[property='og:image']")?.GetAttribute("content");
-
-                    if (string.IsNullOrEmpty(imgUrl))
+                    var link = ad.QuerySelector("a")?.GetAttribute("href");
+                    if (string.IsNullOrEmpty(link)) continue;
+                    if (!link.Contains("/msg/lv/animals/dogs/"))
                     {
-                        var styleAttr = petDoc.QuerySelector("div[style*='background-image']")?.GetAttribute("style");
-                        var match = Regex.Match(styleAttr ?? "", "url\\(['\" ]?(.*?)['\" ]?\\)");
-                        if (match.Success) imgUrl = match.Groups[1].Value;
+                        Console.WriteLine($"⚠️ Skipped non-pet ad: {link}");
+                        continue;
+                    }
+
+                    var fullLink = "https://www.ss.lv" + link;
+
+                    if (await _db.Pets.AnyAsync(p => p.external_url == fullLink))
+                    {
+                        Console.WriteLine($"⚠️ Skipping duplicate: {fullLink}");
+                        continue;
+                    }
+
+                    var petPageHtml = await client.GetStringAsync(fullLink);
+                    var petDoc = await context.OpenAsync(req => req.Content(petPageHtml));
+
+                    var breedText = GetFieldValue(petDoc, "Šķirne:");
+                    Console.WriteLine($"[DEBUG] breedText: {breedText}");
+
+                    var ageText = GetFieldValue(petDoc, "Vecums:");
+                    Console.WriteLine($"[DEBUG] ageText: {ageText}");
+
+                    var fullDescription = petDoc.QuerySelector("div[id^='msg_div_msg']")?.TextContent?.Trim();
+                    Console.WriteLine($"[DEBUG] fullDescription: {fullDescription}");
+
+                    var colorText = GetFieldValue(petDoc, "Krāsa:");
+                    Console.WriteLine($"[DEBUG] colorText: {colorText}");
+
+                    var healthText = GetFieldValue(petDoc, "Veselība:");
+                    Console.WriteLine($"[DEBUG] healthText: {healthText}");
+
+                    string? imgElement = petDoc.QuerySelector("img[src*='/images/']")?.GetAttribute("src");
+                    if (string.IsNullOrEmpty(imgElement))
+                    {
+                        var imageMeta = petDoc.QuerySelector("meta[property='og:image']")?.GetAttribute("content");
+                        if (!string.IsNullOrEmpty(imageMeta))
+                        {
+                            imgElement = imageMeta;
+                        }
                     }
 
                     ObjectId? photoId = null;
-                    if (!string.IsNullOrEmpty(imgUrl))
+                    if (!string.IsNullOrEmpty(imgElement))
                     {
-                        var absoluteUrl = imgUrl.StartsWith("http") ? imgUrl : "https:" + imgUrl;
                         try
                         {
-                            var imageBytes = await client.GetByteArrayAsync(absoluteUrl);
+                            var imageUrl = imgElement.StartsWith("http") ? imgElement : "https:" + imgElement;
+                            var imageBytes = await client.GetByteArrayAsync(imageUrl);
                             photoId = await _mongoService.SaveImageAsync(imageBytes);
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"⚠️ Image load failed: {absoluteUrl} | {ex.Message}");
+                            Console.WriteLine($"⚠️ Failed to fetch image: {imgElement} | {ex.Message}");
                         }
                     }
+                    else
+                    {
+                        Console.WriteLine("⚠️ No image found on the page.");
+                    }
 
-                    var shortTitle = !string.IsNullOrEmpty(fullDescription) && fullDescription.Length > 100
+                    var shortTitle = fullDescription != null && fullDescription.Length > 100
                         ? fullDescription.Substring(0, 100) + "..."
                         : fullDescription ?? "No name";
 
@@ -135,13 +145,14 @@ public class PetParser
                         external_url = fullLink
                     });
 
-                    Console.WriteLine("✅ Added pet: " + shortTitle);
-                    if (result.Count >= 10) break;
+                    Console.WriteLine($"✅ Added pet: {shortTitle}");
+
+                    if (result.Count >= max) break;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("❌ Parsing failed: " + ex.Message);
-                    skipped++;
+                    Console.WriteLine("❌ Parse error: " + ex.Message);
+                    continue;
                 }
             }
 
@@ -151,15 +162,59 @@ public class PetParser
         return result;
     }
 
+    private string? GetFieldValue(AngleSharp.Dom.IDocument doc, string fieldName)
+    {
+        return doc.QuerySelectorAll("tr")
+            .FirstOrDefault(tr =>
+                tr.Children.Length == 2 &&
+                tr.Children[0].TextContent.Trim().StartsWith(fieldName, StringComparison.OrdinalIgnoreCase))
+            ?.Children[1]
+            ?.TextContent
+            ?.Trim();
+    }
+
     private float ParseAge(string? ageText)
     {
-        if (string.IsNullOrWhiteSpace(ageText)) return 0;
-
-        var parts = ageText.ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length >= 2)
+        if (string.IsNullOrWhiteSpace(ageText))
         {
-            if (parts[1].StartsWith("mēn")) return float.TryParse(parts[0], out var m) ? m : 0;
-            if (parts[1].StartsWith("gad")) return float.TryParse(parts[0], out var y) ? y * 12 : 0;
+            Console.WriteLine("⚠️ ageText is empty or null.");
+            return 0;
+        }
+
+        ageText = ageText.ToLower().Trim();
+        Console.WriteLine($"[DEBUG] Parsing ageText: {ageText}");
+
+        try
+        {
+            var match = Regex.Match(
+                ageText,
+                @"(?<value>\d+(?:[.,]\d+)?)\s*(?<unit>gadi|gads|gadus|мес(?:яц[аев]*)?|месяц(?:а|ев)?|год(?:а|ов)?|лет|года|months?|years?|mēneš[iu]?|men|yr|yrs|y|m)",
+                RegexOptions.IgnoreCase
+            );
+
+            if (!match.Success)
+            {
+                Console.WriteLine($"⚠️ Could not parse ageText: '{ageText}'");
+                return 0;
+            }
+
+            var numberPart = match.Groups["value"].Value.Replace(',', '.');
+            var unit = match.Groups["unit"].Value;
+
+            float number = float.Parse(numberPart, System.Globalization.CultureInfo.InvariantCulture);
+
+            if (unit.StartsWith("mēn") || unit.StartsWith("мес") || unit.StartsWith("men") || unit.StartsWith("m") || unit.StartsWith("month"))
+            {
+                return number;
+            }
+            else if (unit.StartsWith("gad") || unit.StartsWith("год") || unit.StartsWith("лет") || unit.StartsWith("yr") || unit.StartsWith("y") || unit.StartsWith("year"))
+            {
+                return number * 12;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"⚠️ Failed to parse age: '{ageText}' | {ex.Message}");
         }
 
         return 0;
@@ -167,20 +222,41 @@ public class PetParser
 
     private async Task<int> ResolveBreedIdAsync(string? breedText)
     {
-        if (string.IsNullOrWhiteSpace(breedText)) return 1;
+        if (string.IsNullOrEmpty(breedText))
+        {
+            Console.WriteLine("⚠️ breedText is empty. Defaulting to ID 1.");
+            return 1;
+        }
 
-        var breed = await _db.Breeds.FirstOrDefaultAsync(b => b.name.ToLower() == breedText.ToLower());
+        var lower = breedText.ToLower().Trim();
+        var breed = await _db.Breeds.FirstOrDefaultAsync(b => b.name.ToLower() == lower);
+
+        if (breed == null)
+        {
+            Console.WriteLine($"⚠️ Breed '{breedText}' not found in database. Using default ID 1.");
+        }
+
         return breed?.id ?? 1;
     }
 
     private int ResolveGender(string? text)
     {
-        if (string.IsNullOrWhiteSpace(text)) return 1;
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            Console.WriteLine("⚠️ No gender-related text found.");
+            return 1;
+        }
 
         var lower = text.ToLower();
-        if (Regex.IsMatch(lower, @"\b(девочка|meitene|female|сука)\b")) return 2;
-        if (Regex.IsMatch(lower, @"\b(мальчик|puika|male|кобель)\b")) return 1;
+        Console.WriteLine($"[DEBUG] Checking gender text: {lower}");
 
+        if (Regex.IsMatch(lower, @"\b(девочка|meitene|female|сука|girl|женский|she)\b"))
+            return 2;
+
+        if (Regex.IsMatch(lower, @"\b(мальчик|puika|male|кобель|boy|мужской|he)\b"))
+            return 1;
+
+        Console.WriteLine("⚠️ Gender could not be resolved. Defaulting to male.");
         return 1;
     }
 }
