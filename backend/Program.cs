@@ -119,6 +119,7 @@ builder.Services.AddScoped<PetParser>();
 builder.Services.AddScoped<BreedResolver>();
 builder.Services.AddSingleton<MongoService>();
 builder.Services.AddHttpClient();
+builder.Services.AddHostedService<SpeciesAutoUpdater>();
 
 // Logging closed 
 // builder.Logging.ClearProviders();

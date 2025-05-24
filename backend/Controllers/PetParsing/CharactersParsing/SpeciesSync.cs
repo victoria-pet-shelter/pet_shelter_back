@@ -15,7 +15,7 @@ public class SpeciesSyncController : ControllerBase
         _logger = logger;
     }
 
-    [HttpPost("update-breeds")]
+    [HttpPost("update")]
     public async Task<IActionResult> UpdateBreeds()
     {
         try
