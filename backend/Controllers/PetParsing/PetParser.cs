@@ -8,6 +8,11 @@ using System.Threading.Tasks;
 using AngleSharp;
 using Models;
 using MongoDB.Bson;
+using ResolvePrice;
+using ResolveAge;
+using ResolveGender;
+using ResolveBreedId;
+using ResolveSpeciesId;
 
 public class PetParser
 {
@@ -33,34 +38,8 @@ public class PetParser
 
         await _db.SaveChangesAsync();
     }
-    private string? ExtractPrice(string? description)
-    {
-        if (string.IsNullOrWhiteSpace(description))
-            return null;
 
-        try
-        {
-            var match = Regex.Match(description, @"(\d[\d\s]*[\.,]?\d*)\s*€");
-            if (match.Success)
-            {
-                string raw = match.Groups[1].Value;
-                raw = raw.Replace(" ", "").Replace(",", ".");
-                return raw;
-            }
-            else
-            {
-                Console.WriteLine("[DEBUG] Сena not in description.");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"⚠️ Error with cena: {ex.Message}");
-        }
-
-        return null;
-    }
-
-    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 1000)
+    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 50)
     {
         List<Pets> result = new();
         int page = 1;
@@ -166,7 +145,7 @@ public class PetParser
                         breed_id = await ResolveBreedIdAsync(breedText),
                         color = colorText,
                         health = healthText,
-                        species_id = 1,
+                        species_id = ResolveSpeciesId(fullDescription),
                         gender_id = ResolveGender(fullDescription),
                         mongo_image_id = photoId?.ToString(),
                         shelter_id = shelterId,
@@ -202,92 +181,5 @@ public class PetParser
             ?.Children[1]
             ?.TextContent
             ?.Trim();
-    }
-
-    private float ParseAge(string? ageText)
-    {
-        if (string.IsNullOrWhiteSpace(ageText))
-        {
-            Console.WriteLine("⚠️ ageText is empty or null.");
-            return 0;
-        }
-
-        ageText = ageText.ToLower().Trim();
-        Console.WriteLine($"[DEBUG] Parsing ageText: {ageText}");
-
-        try
-        {
-            var match = Regex.Match(
-                ageText,
-                @"(?<value>\d+(?:[.,]\d+)?)\s*(?<unit>gadi|gads|gadus|мес(?:яц[аев]*)?|месяц(?:а|ев)?|год(?:а|ов)?|лет|года|months?|years?|mēneš[iu]?|men|yr|yrs|y|m)",
-                RegexOptions.IgnoreCase
-            );
-
-            if (!match.Success)
-            {
-                Console.WriteLine($"⚠️ Could not parse ageText: '{ageText}'");
-                return 0;
-            }
-
-            var numberPart = match.Groups["value"].Value.Replace(',', '.');
-            var unit = match.Groups["unit"].Value;
-
-            float number = float.Parse(numberPart, System.Globalization.CultureInfo.InvariantCulture);
-
-            if (unit.StartsWith("mēn") || unit.StartsWith("мес") || unit.StartsWith("men") || unit.StartsWith("m") || unit.StartsWith("month"))
-            {
-                return number;
-            }
-            else if (unit.StartsWith("gad") || unit.StartsWith("год") || unit.StartsWith("лет") || unit.StartsWith("yr") || unit.StartsWith("y") || unit.StartsWith("year"))
-            {
-                return number * 12;
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"⚠️ Failed to parse age: '{ageText}' | {ex.Message}");
-        }
-
-        return 0;
-    }
-
-    private async Task<int> ResolveBreedIdAsync(string? breedText)
-    {
-        if (string.IsNullOrEmpty(breedText))
-        {
-            Console.WriteLine("⚠️ breedText is empty. Defaulting to ID 1.");
-            return 1;
-        }
-
-        var lower = breedText.ToLower().Trim();
-        var breed = await _db.Breeds.FirstOrDefaultAsync(b => b.name.ToLower() == lower);
-
-        if (breed == null)
-        {
-            Console.WriteLine($"⚠️ Breed '{breedText}' not found in database. Using default ID 1.");
-        }
-
-        return breed?.id ?? 1;
-    }
-
-    private int ResolveGender(string? text)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            Console.WriteLine("⚠️ No gender-related text found.");
-            return 1;
-        }
-
-        var lower = text.ToLower();
-        Console.WriteLine($"[DEBUG] Checking gender text: {lower}");
-
-        if (Regex.IsMatch(lower, @"\b(девочка|meitene|female|сука|girl|женский|she)\b"))
-            return 2;
-
-        if (Regex.IsMatch(lower, @"\b(мальчик|puika|male|кобель|boy|мужской|he)\b"))
-            return 1;
-
-        Console.WriteLine("⚠️ Gender could not be resolved. Defaulting to male.");
-        return 1;
     }
 }
