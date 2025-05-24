@@ -33,6 +33,32 @@ public class PetParser
 
         await _db.SaveChangesAsync();
     }
+    private string? ExtractPrice(string? description)
+    {
+        if (string.IsNullOrWhiteSpace(description))
+            return null;
+
+        try
+        {
+            var match = Regex.Match(description, @"(\d[\d\s]*[\.,]?\d*)\s*€");
+            if (match.Success)
+            {
+                string raw = match.Groups[1].Value;
+                raw = raw.Replace(" ", "").Replace(",", ".");
+                return raw;
+            }
+            else
+            {
+                Console.WriteLine("[DEBUG] Сena not in description.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"⚠️ Error with cena: {ex.Message}");
+        }
+
+        return null;
+    }
 
     public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 1000)
     {
@@ -95,6 +121,9 @@ public class PetParser
                     var healthText = GetFieldValue(petDoc, "Veselība:");
                     Console.WriteLine($"[DEBUG] healthText: {healthText}");
 
+                    var priceText = ExtractPrice(fullDescription);
+                    Console.WriteLine($"[DEBUG] cena: {priceText}");
+
                     string? imgElement = petDoc.QuerySelector("img[src*='/images/']")?.GetAttribute("src");
                     if (string.IsNullOrEmpty(imgElement))
                     {
@@ -142,7 +171,9 @@ public class PetParser
                         mongo_image_id = photoId?.ToString(),
                         shelter_id = shelterId,
                         created_at = DateTime.UtcNow,
-                        external_url = fullLink
+                        external_url = fullLink,
+                        cena = priceText
+
                     });
 
                     Console.WriteLine($"✅ Added pet: {shortTitle}");
