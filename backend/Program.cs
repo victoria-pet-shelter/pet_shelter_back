@@ -113,6 +113,15 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+    });
+});
+app.UseCors("AllowAll");
+
 // Pets Parsing
 builder.Services.AddHostedService<PetImportBackgroundService>();
 builder.Services.AddScoped<PetParser>();
