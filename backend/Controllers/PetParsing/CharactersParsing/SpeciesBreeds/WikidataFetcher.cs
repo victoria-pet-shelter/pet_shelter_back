@@ -16,7 +16,7 @@ public class WikidataFetcher
     {
         try
         {
-            var keywordsJson = File.ReadAllText("species_keywords.json");
+            var keywordsJson = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Data", "Seed", "species_keywords.json"));
             _speciesKeywords = JsonSerializer.Deserialize<Dictionary<string, List<string>>>(keywordsJson)
                 ?? new Dictionary<string, List<string>>();
         }
@@ -50,9 +50,13 @@ public class WikidataFetcher
 
         foreach (var result in results.EnumerateArray())
         {
-            string breed = result.GetProperty("breedLabel").GetProperty("value").GetString();
+            if (!result.TryGetProperty("breedLabel", out var breedLabelElement)) continue;
+
+            string? breed = breedLabelElement.GetProperty("value").GetString();
+            if (string.IsNullOrWhiteSpace(breed)) continue;
+
             string animal = result.TryGetProperty("animalLabel", out var sp)
-                ? sp.GetProperty("value").GetString()
+                ? sp.GetProperty("value").GetString() ?? InferSpeciesName(breed)
                 : InferSpeciesName(breed);
 
             animal = animal.ToLower();
@@ -79,8 +83,10 @@ public class WikidataFetcher
         Console.WriteLine($"✅ species_breeds.json updated with {speciesMap.Count} species groups.");
     }
 
-    public int InferSpeciesId(string breed)
+    public int InferSpeciesId(string? breed)
     {
+        if (string.IsNullOrWhiteSpace(breed)) return 0;
+
         string lower = breed.ToLower();
         foreach (var pair in _speciesKeywords)
         {
@@ -106,8 +112,10 @@ public class WikidataFetcher
         return 0;
     }
 
-    public string InferSpeciesName(string breed)
+    public string InferSpeciesName(string? breed)
     {
+        if (string.IsNullOrWhiteSpace(breed)) return "unknown";
+
         string lower = breed.ToLower();
         foreach (var pair in _speciesKeywords)
         {
@@ -126,6 +134,6 @@ public class WikidataFetcher
         public int species_id { get; set; }
 
         [JsonPropertyName("breeds")]
-        public List<string> breeds { get; set; }
+        public List<string> breeds { get; set; } = new();
     }
 }

@@ -116,6 +116,7 @@ builder.Services.AddSingleton<MongoService>();
 builder.Services.AddHttpClient();
 builder.Services.AddHostedService<SpeciesAutoUpdater>();
 builder.Services.AddSingleton<WikidataFetcher>();
+builder.Services.AddSingleton<IServiceScopeFactory>(sp => sp.GetRequiredService<IServiceScopeFactory>());
 
 // CORS for Frontend
 builder.Services.AddCors(options =>
@@ -128,7 +129,7 @@ builder.Services.AddCors(options =>
 
 
 // Logging closed 
-// builder.Logging.ClearProviders();
+builder.Logging.ClearProviders();
 
 var app = builder.Build();
 
