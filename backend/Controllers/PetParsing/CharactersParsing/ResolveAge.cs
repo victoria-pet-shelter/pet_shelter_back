@@ -1,4 +1,9 @@
-private float ParseAge(string? ageText)
+using System;
+using System.Text.RegularExpressions;
+
+public static class AgeResolver
+{
+    public static float ParseAge(string? ageText)
     {
         if (string.IsNullOrWhiteSpace(ageText))
         {
@@ -43,4 +48,6 @@ private float ParseAge(string? ageText)
         }
 
         return 0;
+
     }
+}

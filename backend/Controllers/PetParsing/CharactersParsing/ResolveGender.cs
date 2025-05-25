@@ -1,4 +1,9 @@
-private int ResolveGender(string? text)
+using System;
+using System.Text.RegularExpressions;
+
+public static class GenderResolver
+{
+    public static int ResolveGender(string? text)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
@@ -18,3 +23,4 @@ private int ResolveGender(string? text)
         Console.WriteLine("⚠️ Gender could not be resolved. Defaulting to male.");
         return 1;
     }
+}

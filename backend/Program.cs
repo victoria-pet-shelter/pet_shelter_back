@@ -7,11 +7,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
-using MongoServiceNamespace;
-using ResolveBreedId;
-using ResolveGender;
-using ResolvePrice;
-using ResolveAge;
 using System.Text;
 using DotNetEnv;
 using Config;
@@ -112,15 +107,6 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-// CORS for Frontend
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", builder =>
-    {
-        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-    });
-});
-app.UseCors("AllowAll");
 
 // Pets Parsing
 builder.Services.AddHostedService<PetImportBackgroundService>();
@@ -131,6 +117,16 @@ builder.Services.AddHttpClient();
 builder.Services.AddHostedService<SpeciesAutoUpdater>();
 builder.Services.AddSingleton<WikidataFetcher>();
 
+// CORS for Frontend
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+    });
+});
+
+
 // Logging closed 
 // builder.Logging.ClearProviders();
 
@@ -140,6 +136,8 @@ if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
 }
+
+app.UseCors("AllowAll");
 
 app.UseSwagger();
 app.UseSwaggerUI();

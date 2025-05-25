@@ -1,4 +1,9 @@
-private string? ExtractPrice(string? description)
+using System;
+using System.Text.RegularExpressions;
+
+public static class PriceResolver
+{
+    public static string? ExtractPrice(string? description)
     {
         if (string.IsNullOrWhiteSpace(description))
             return null;
@@ -23,4 +28,6 @@ private string? ExtractPrice(string? description)
         }
 
         return null;
+
     }
+}

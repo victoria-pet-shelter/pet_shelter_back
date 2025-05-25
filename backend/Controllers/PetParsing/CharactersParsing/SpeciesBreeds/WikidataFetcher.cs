@@ -79,7 +79,7 @@ public class WikidataFetcher
         Console.WriteLine($"✅ species_breeds.json updated with {speciesMap.Count} species groups.");
     }
 
-    private int InferSpeciesId(string breed)
+    public int InferSpeciesId(string breed)
     {
         string lower = breed.ToLower();
         foreach (var pair in _speciesKeywords)
@@ -106,7 +106,7 @@ public class WikidataFetcher
         return 0;
     }
 
-    private string InferSpeciesName(string breed)
+    public string InferSpeciesName(string breed)
     {
         string lower = breed.ToLower();
         foreach (var pair in _speciesKeywords)

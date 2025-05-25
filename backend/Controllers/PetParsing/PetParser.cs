@@ -8,9 +8,6 @@ using System.Threading.Tasks;
 using AngleSharp;
 using Models;
 using MongoDB.Bson;
-using ResolveAge;
-using ResolveGender;
-using ResolvePrice;
 
 public class PetParser
 {
@@ -29,7 +26,7 @@ public class PetParser
         _fetcher = fetcher;
     }
 
-    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 50)
+    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 1)
     {
         List<Pets> result = new();
         int page = 1;
