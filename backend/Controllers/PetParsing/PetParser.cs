@@ -18,25 +18,15 @@ public class PetParser
     private readonly MongoService _mongoService;
     private readonly AppDbContext _db;
     private readonly BreedResolver _breedResolver;
+    private readonly WikidataFetcher _fetcher;
 
-    public PetParser(IHttpClientFactory httpClientFactory, MongoService mongoService, AppDbContext db, BreedResolver breedResolver)
+    public PetParser(IHttpClientFactory httpClientFactory, MongoService mongoService, AppDbContext db, BreedResolver breedResolver, WikidataFetcher fetcher)
     {
         _httpClientFactory = httpClientFactory;
         _mongoService = mongoService;
         _db = db;
         _breedResolver = breedResolver;
-        EnsureGendersExist().Wait();
-    }
-
-    private async Task EnsureGendersExist()
-    {
-        var existing = await _db.Genders.ToListAsync();
-        if (!existing.Any(g => g.id == 1))
-            await _db.Genders.AddAsync(new Genders { id = 1, name = "male" });
-        if (!existing.Any(g => g.id == 2))
-            await _db.Genders.AddAsync(new Genders { id = 2, name = "female" });
-
-        await _db.SaveChangesAsync();
+        _fetcher = fetcher;
     }
 
     public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 50)
@@ -136,6 +126,8 @@ public class PetParser
                         ? fullDescription.Substring(0, 100) + "..."
                         : fullDescription ?? "No name";
 
+                    int speciesId = _fetcher.InferSpeciesId(breedText ?? "");
+
                     result.Add(new Pets
                     {
                         id = Guid.NewGuid(),
@@ -143,9 +135,9 @@ public class PetParser
                         description = fullDescription,
                         age = AgeResolver.ParseAge(ageText),
                         breed_id = await _breedResolver.ResolveBreedIdAsync(breedText),
+                        species_id = speciesId,
                         color = colorText,
                         health = healthText,
-                        species_id = 0, // species handled by breed
                         gender_id = GenderResolver.ResolveGender(fullDescription),
                         mongo_image_id = photoId?.ToString(),
                         shelter_id = shelterId,

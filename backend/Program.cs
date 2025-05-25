@@ -129,6 +129,7 @@ builder.Services.AddScoped<BreedResolver>();
 builder.Services.AddSingleton<MongoService>();
 builder.Services.AddHttpClient();
 builder.Services.AddHostedService<SpeciesAutoUpdater>();
+builder.Services.AddSingleton<WikidataFetcher>();
 
 // Logging closed 
 // builder.Logging.ClearProviders();
