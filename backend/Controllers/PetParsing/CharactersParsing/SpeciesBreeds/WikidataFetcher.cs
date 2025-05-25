@@ -10,6 +10,22 @@ public class WikidataFetcher
 {
     private static readonly HttpClient _httpClient = new HttpClient();
     private const string Endpoint = "https://query.wikidata.org/sparql";
+    private Dictionary<string, List<string>> _speciesKeywords;
+
+    public WikidataFetcher()
+    {
+        try
+        {
+            var keywordsJson = File.ReadAllText("species_keywords.json");
+            _speciesKeywords = JsonSerializer.Deserialize<Dictionary<string, List<string>>>(keywordsJson)
+                ?? new Dictionary<string, List<string>>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("❌ Failed to load species_keywords.json: " + ex.Message);
+            _speciesKeywords = new Dictionary<string, List<string>>();
+        }
+    }
 
     public async Task UpdateSpeciesBreedsJsonAsync(string outputPath)
     {
@@ -37,15 +53,16 @@ public class WikidataFetcher
             string breed = result.GetProperty("breedLabel").GetProperty("value").GetString();
             string animal = result.TryGetProperty("animalLabel", out var sp)
                 ? sp.GetProperty("value").GetString()
-                : InferFromType(breed);
+                : InferSpeciesName(breed);
 
             animal = animal.ToLower();
+            int speciesId = InferSpeciesId(breed);
 
             if (!speciesMap.ContainsKey(animal))
             {
                 speciesMap[animal] = new SpeciesEntry
                 {
-                    species_id = GetSpeciesIdByName(animal),
+                    species_id = speciesId,
                     breeds = new List<string>()
                 };
             }
@@ -62,33 +79,44 @@ public class WikidataFetcher
         Console.WriteLine($"✅ species_breeds.json updated with {speciesMap.Count} species groups.");
     }
 
-    private int GetSpeciesIdByName(string name)
-    {
-        return name switch
-        {
-            "dog" or "dogs" or "canine" => 1,
-            "cat" or "cats" or "feline" => 2,
-            "rabbit" or "hare" or "rabbits" => 3,
-            "bird" or "birds" => 4,
-            "rodent" or "hamster" or "mouse" or "rat" => 5,
-            "reptile" or "snake" or "lizard" or "turtle" => 6,
-            "horse" or "pony" or "horses" => 7,
-            "fish" or "fishes" => 8,
-            _ => 0
-        };
-    }
-
-    private string InferFromType(string breed)
+    private int InferSpeciesId(string breed)
     {
         string lower = breed.ToLower();
-        if (lower.Contains("dog") || lower.Contains("canine")) return "dog";
-        if (lower.Contains("cat") || lower.Contains("feline")) return "cat";
-        if (lower.Contains("rabbit") || lower.Contains("hare")) return "rabbit";
-        if (lower.Contains("bird") || lower.Contains("parrot")) return "bird";
-        if (lower.Contains("hamster") || lower.Contains("rat") || lower.Contains("mouse")) return "rodent";
-        if (lower.Contains("lizard") || lower.Contains("snake") || lower.Contains("turtle")) return "reptile";
-        if (lower.Contains("horse") || lower.Contains("pony")) return "horse";
-        if (lower.Contains("fish")) return "fish";
+        foreach (var pair in _speciesKeywords)
+        {
+            foreach (var keyword in pair.Value)
+            {
+                if (lower.Contains(keyword.ToLower()))
+                {
+                    return pair.Key switch
+                    {
+                        "dog" => 1,
+                        "cat" => 2,
+                        "rabbit" => 3,
+                        "bird" => 4,
+                        "rodent" => 5,
+                        "reptile" => 6,
+                        "horse" => 7,
+                        "fish" => 8,
+                        _ => 0
+                    };
+                }
+            }
+        }
+        return 0;
+    }
+
+    private string InferSpeciesName(string breed)
+    {
+        string lower = breed.ToLower();
+        foreach (var pair in _speciesKeywords)
+        {
+            foreach (var keyword in pair.Value)
+            {
+                if (lower.Contains(keyword.ToLower()))
+                    return pair.Key;
+            }
+        }
         return "unknown";
     }
 
@@ -100,4 +128,4 @@ public class WikidataFetcher
         [JsonPropertyName("breeds")]
         public List<string> breeds { get; set; }
     }
-} 
+}

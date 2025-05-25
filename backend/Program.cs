@@ -112,7 +112,7 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-
+// CORS for Frontend
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
