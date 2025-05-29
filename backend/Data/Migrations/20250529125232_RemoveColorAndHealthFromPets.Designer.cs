@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace main.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250529125232_RemoveColorAndHealthFromPets")]
+    partial class RemoveColorAndHealthFromPets
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -158,7 +161,7 @@ namespace main.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<float?>("age")
+                    b.Property<float>("age")
                         .HasColumnType("real");
 
                     b.Property<int>("breed_id")
@@ -179,7 +182,7 @@ namespace main.Migrations
                     b.Property<string>("external_url")
                         .HasColumnType("text");
 
-                    b.Property<int?>("gender_id")
+                    b.Property<int>("gender_id")
                         .HasColumnType("integer");
 
                     b.Property<string>("image")
@@ -382,7 +385,8 @@ namespace main.Migrations
                     b.HasOne("Models.Genders", "Gender")
                         .WithMany()
                         .HasForeignKey("gender_id")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Models.Shelters", "Shelter")
                         .WithMany()
