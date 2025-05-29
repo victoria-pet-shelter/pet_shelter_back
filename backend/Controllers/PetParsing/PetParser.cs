@@ -55,22 +55,41 @@ public class PetParser
                 {
                     var link = ad.QuerySelector("a")?.GetAttribute("href");
                     if (string.IsNullOrEmpty(link)) continue;
-                    if (!link.Contains("/msg/lv/animals/dogs/"))
+                    var fullLink = "https://www.ss.lv" + link;
+
+                    if (fullLink.Contains("/dogs/accessories") || fullLink.Contains("/dogs/services"))
                     {
-                        Console.WriteLine($"⚠️ Skipped non-pet ad: {link}");
+                        // Console.WriteLine($"⚠️ Skipped non-animal category: {fullLink}");
                         continue;
                     }
 
-                    var fullLink = "https://www.ss.lv" + link;
-
                     if (await _db.Pets.AnyAsync(p => p.external_url == fullLink))
                     {
-                        Console.WriteLine($"⚠️ Skipping duplicate: {fullLink}");
+                        // Console.WriteLine($"⚠️ Skipping duplicate: {fullLink}");
                         continue;
                     }
 
                     var petPageHtml = await client.GetStringAsync(fullLink);
                     var petDoc = await context.OpenAsync(req => req.Content(petPageHtml));
+
+                    var pageTitle = petDoc.QuerySelector("title")?.TextContent?.Trim();
+                    var cleanTitle = pageTitle;
+
+                    if (!string.IsNullOrWhiteSpace(pageTitle))
+                    {
+                        var split = pageTitle.Split("€. ");
+                        if (split.Length > 1)
+                        {
+                            cleanTitle = split[1];
+                        }
+                        else
+                        {
+                            cleanTitle = pageTitle;
+                        }
+
+                        cleanTitle = Regex.Replace(cleanTitle, @"-+\s*Sludinājumi\s*$", "", RegexOptions.IgnoreCase).Trim();
+                    }
+
 
                     var breedText = GetFieldValue(petDoc, "Šķirne:");
                     // Console.WriteLine($"[DEBUG] breedText: {breedText}");
@@ -83,9 +102,6 @@ public class PetParser
 
                     var colorText = GetFieldValue(petDoc, "Krāsa:");
                     // Console.WriteLine($"[DEBUG] colorText: {colorText}");
-
-                    var healthText = GetFieldValue(petDoc, "Veselība:");
-                    // Console.WriteLine($"[DEBUG] healthText: {healthText}");
 
                     var priceText = PriceResolver.ExtractPrice(fullDescription);
                     // Console.WriteLine($"[DEBUG] cena: {priceText}");
@@ -119,28 +135,34 @@ public class PetParser
                         Console.WriteLine("⚠️ No image found on the page.");
                     }
 
-                    var shortTitle = fullDescription != null && fullDescription.Length > 100
-                        ? fullDescription.Substring(0, 100) + "..."
-                        : fullDescription ?? "No name";
+                    var shortTitle = !string.IsNullOrWhiteSpace(pageTitle)
+                        ? pageTitle
+                        : (fullDescription != null && fullDescription.Length > 100
+                            ? fullDescription.Substring(0, 100) + "..."
+                            : fullDescription ?? "No name");
 
-                    int speciesId = _fetcher.InferSpeciesId(breedText ?? "");
-                    if (speciesId == 0)
+
+                    int breedId = await _breedResolver.ResolveBreedIdAsync(breedText);
+                    var breed = await _db.Breeds.FindAsync(breedId);
+
+                    if (breed == null)
                     {
-                        Console.WriteLine($"⚠️ Skipping unknown species for breed: {breedText}");
+                        Console.WriteLine($"⚠️ Failed to find or create breed: {breedText}");
                         continue;
                     }
+
+                    int speciesId = breed.species_id;
 
                     result.Add(new Pets
                     {
                         id = Guid.NewGuid(),
-                        name = shortTitle,
+                        name = cleanTitle,
                         description = fullDescription,
                         age = AgeResolver.ParseAge(ageText),
                         breed_id = await _breedResolver.ResolveBreedIdAsync(breedText),
                         species_id = speciesId,
                         color = colorText,
-                        health = healthText,
-                        gender_id = GenderResolver.ResolveGender(fullDescription),
+                        gender_id = GenderResolver.ResolveGender(fullDescription, pageTitle),
                         mongo_image_id = photoId?.ToString(),
                         shelter_id = shelterId,
                         created_at = DateTime.UtcNow,
@@ -148,7 +170,7 @@ public class PetParser
                         cena = priceText
                     });
 
-                    Console.WriteLine($"✅ Added pet: {shortTitle}");
+                    Console.WriteLine($"✅ Added pet: {cleanTitle}");
 
                     if (result.Count >= max) break;
                 }

@@ -33,7 +33,7 @@ public class BreedResolver
     {
         if (string.IsNullOrWhiteSpace(breedText))
         {
-            Console.WriteLine("⚠️ breedText is empty. Defaulting to ID 1.");
+            // Console.WriteLine("⚠️ breedText is empty. Defaulting to ID 1.");
             return 1;
         }
 

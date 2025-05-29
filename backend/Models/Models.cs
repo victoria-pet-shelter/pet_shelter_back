@@ -63,11 +63,10 @@ public class Pets
     public Guid id { get; set; } // UUID
     public int species_id { get; set; }
     public int breed_id { get; set; }
-    public int gender_id { get; set; }
+    public int? gender_id { get; set; }
     public string? name { get; set; }
-    public float age { get; set; }
+    public float? age { get; set; }
     public string? color { get; set; }
-    public string? health { get; set; }
     public int status_id { get; set; }
     public string? mongo_image_id { get; set; }
     public string? description { get; set; }

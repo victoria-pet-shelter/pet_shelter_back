@@ -3,24 +3,21 @@ using System.Text.RegularExpressions;
 
 public static class GenderResolver
 {
-    public static int ResolveGender(string? text)
+    public static int? ResolveGender(string? description, string? title = null)
     {
-        if (string.IsNullOrWhiteSpace(text))
+        string combined = ((description ?? "") + " " + (title ?? "")).ToLower();
+
+        if (string.IsNullOrWhiteSpace(combined))
         {
-            Console.WriteLine("⚠️ No gender-related text found.");
-            return 1;
+            return null;
         }
 
-        var lower = text.ToLower();
-        Console.WriteLine($"[DEBUG] Checking gender text: {lower}");
-
-        if (Regex.IsMatch(lower, @"\b(девочка|meitene|female|сука|girl|женский|she)\b"))
+        if (Regex.IsMatch(combined, @"\b(девочка|meitene|female|сука|girl|женский|she)\b"))
             return 2;
 
-        if (Regex.IsMatch(lower, @"\b(мальчик|puika|male|кобель|boy|мужской|he)\b"))
+        if (Regex.IsMatch(combined, @"\b(мальчик|puika|male|кобель|boy|мужской|he)\b"))
             return 1;
 
-        Console.WriteLine("⚠️ Gender could not be resolved. Defaulting to male.");
-        return 1;
+        return null;
     }
 }
