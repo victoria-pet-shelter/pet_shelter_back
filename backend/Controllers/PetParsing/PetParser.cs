@@ -26,7 +26,7 @@ public class PetParser
         _fetcher = fetcher;
     }
 
-    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 100)
+    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 10)
     {
         List<Pets> result = new();
         int page = 1;
@@ -73,22 +73,22 @@ public class PetParser
                     var petDoc = await context.OpenAsync(req => req.Content(petPageHtml));
 
                     var breedText = GetFieldValue(petDoc, "Šķirne:");
-                    Console.WriteLine($"[DEBUG] breedText: {breedText}");
+                    // Console.WriteLine($"[DEBUG] breedText: {breedText}");
 
                     var ageText = GetFieldValue(petDoc, "Vecums:");
-                    Console.WriteLine($"[DEBUG] ageText: {ageText}");
+                    // Console.WriteLine($"[DEBUG] ageText: {ageText}");
 
                     var fullDescription = petDoc.QuerySelector("div[id^='msg_div_msg']")?.TextContent?.Trim();
-                    Console.WriteLine($"[DEBUG] fullDescription: {fullDescription}");
+                    // Console.WriteLine($"[DEBUG] fullDescription: {fullDescription}");
 
                     var colorText = GetFieldValue(petDoc, "Krāsa:");
-                    Console.WriteLine($"[DEBUG] colorText: {colorText}");
+                    // Console.WriteLine($"[DEBUG] colorText: {colorText}");
 
                     var healthText = GetFieldValue(petDoc, "Veselība:");
-                    Console.WriteLine($"[DEBUG] healthText: {healthText}");
+                    // Console.WriteLine($"[DEBUG] healthText: {healthText}");
 
                     var priceText = PriceResolver.ExtractPrice(fullDescription);
-                    Console.WriteLine($"[DEBUG] cena: {priceText}");
+                    // Console.WriteLine($"[DEBUG] cena: {priceText}");
 
                     string? imgElement = petDoc.QuerySelector("img[src*='/images/']")?.GetAttribute("src");
                     if (string.IsNullOrEmpty(imgElement))
