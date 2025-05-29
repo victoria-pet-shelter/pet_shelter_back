@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
+using MongoDB.Driver;
 using ImageFetchers;
 using System.Text;
 using DotNetEnv;
@@ -74,6 +75,19 @@ builder.Services.AddAuthentication(options =>
         NameClaimType = ClaimTypes.NameIdentifier
     };
 });
+
+var mongoUri = Environment.GetEnvironmentVariable("MONGO_URI") ?? throw new Exception("Missing MONGO_URI in .env");
+
+// MongoClient
+builder.Services.AddSingleton<IMongoClient>(sp =>
+    new MongoClient(mongoUri));
+
+builder.Services.AddSingleton(sp =>
+{
+    var client = sp.GetRequiredService<IMongoClient>();
+    return client.GetDatabase("PetShelterMedia");
+});
+
 
 // Controllers и Swagger
 builder.Services.AddControllers();
