@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
+using ImageFetchers;
 using System.Text;
 using DotNetEnv;
 using Config;
@@ -117,6 +118,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddHostedService<SpeciesAutoUpdater>();
 builder.Services.AddSingleton<WikidataFetcher>();
 builder.Services.AddSingleton<IServiceScopeFactory>(sp => sp.GetRequiredService<IServiceScopeFactory>());
+builder.Services.AddTransient<ImageFetcher>();
 
 // CORS for Frontend
 builder.Services.AddCors(options =>

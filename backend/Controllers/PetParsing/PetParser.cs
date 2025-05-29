@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using AngleSharp;
 using Models;
 using MongoDB.Bson;
+using ImageFetchers;
 
 public class PetParser
 {
@@ -16,17 +17,19 @@ public class PetParser
     private readonly AppDbContext _db;
     private readonly BreedResolver _breedResolver;
     private readonly WikidataFetcher _fetcher;
+    private readonly ImageFetcher _imageFetcher;
 
-    public PetParser(IHttpClientFactory httpClientFactory, MongoService mongoService, AppDbContext db, BreedResolver breedResolver, WikidataFetcher fetcher)
+    public PetParser(IHttpClientFactory httpClientFactory, MongoService mongoService, AppDbContext db, BreedResolver breedResolver, WikidataFetcher fetcher, ImageFetcher imageFetcher)
     {
         _httpClientFactory = httpClientFactory;
         _mongoService = mongoService;
         _db = db;
         _breedResolver = breedResolver;
         _fetcher = fetcher;
+        _imageFetcher = imageFetcher;
     }
 
-    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 10)
+    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 50)
     {
         List<Pets> result = new();
         int page = 1;
@@ -106,34 +109,9 @@ public class PetParser
                     var priceText = PriceResolver.ExtractPrice(fullDescription);
                     // Console.WriteLine($"[DEBUG] cena: {priceText}");
 
-                    string? imgElement = petDoc.QuerySelector("img[src*='/images/']")?.GetAttribute("src");
-                    if (string.IsNullOrEmpty(imgElement))
-                    {
-                        var imageMeta = petDoc.QuerySelector("meta[property='og:image']")?.GetAttribute("content");
-                        if (!string.IsNullOrEmpty(imageMeta))
-                        {
-                            imgElement = imageMeta;
-                        }
-                    }
+                    // Image Download
+                    ObjectId? photoId = await _imageFetcher.FetchImageIdFromPage(petDoc);
 
-                    ObjectId? photoId = null;
-                    if (!string.IsNullOrEmpty(imgElement))
-                    {
-                        try
-                        {
-                            var imageUrl = imgElement.StartsWith("http") ? imgElement : "https:" + imgElement;
-                            var imageBytes = await client.GetByteArrayAsync(imageUrl);
-                            photoId = await _mongoService.SaveImageAsync(imageBytes);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"⚠️ Failed to fetch image: {imgElement} | {ex.Message}");
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("⚠️ No image found on the page.");
-                    }
 
                     var shortTitle = !string.IsNullOrWhiteSpace(pageTitle)
                         ? pageTitle
@@ -169,9 +147,9 @@ public class PetParser
                         external_url = fullLink,
                         cena = priceText
                     });
-
+                    // Console.WriteLine(petDoc.DocumentElement.OuterHtml); 
                     Console.WriteLine($"✅ Added pet: {cleanTitle}");
-
+                    
                     if (result.Count >= max) break;
                 }
                 catch (Exception ex)

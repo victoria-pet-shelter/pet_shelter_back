@@ -19,7 +19,7 @@ public static class PriceResolver
             }
             else
             {
-                Console.WriteLine("[DEBUG] Сena not in description.");
+                // Console.WriteLine("[DEBUG] Сena not in description.");
             }
         }
         catch (Exception ex)
