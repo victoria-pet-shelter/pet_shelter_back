@@ -28,10 +28,10 @@ public class BreedResolver
                 return await GetOrCreateBreedAsync("Unknown", null);
             }
 
-            string normalized = (breedName ?? "").ToLower().Trim();
+            string normalized = breedName.ToLower().Trim();
 
             var existing = await _db.Breeds
-                .Where(b => b.name.ToLower() == normalized)
+                .Where(b => b.name != null && b.name.ToLower() == normalized)
                 .FirstOrDefaultAsync();
 
             if (existing != null)
@@ -41,7 +41,7 @@ public class BreedResolver
 
             int? speciesId = _detector.DetectSpeciesId(breedName);
 
-            return await GetOrCreateBreedAsync(breedName, speciesId);
+            return await GetOrCreateBreedAsync(breedName!, speciesId);
         }
         catch (Exception ex)
         {
@@ -50,16 +50,24 @@ public class BreedResolver
         }
     }
 
+
     private async Task<int> GetOrCreateBreedAsync(string name, int? speciesId)
     {
-        var newBreed = new Breed
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            name = "Unknown";
+        }
+
+        var newBreed = new Breeds
         {
             name = name,
-            species_id = speciesId
+            species_id = speciesId ?? 0 // default fallback to 0 if speciesId is null
         };
 
         _db.Breeds.Add(newBreed);
         await _db.SaveChangesAsync();
         return newBreed.id;
     }
+
+
 }

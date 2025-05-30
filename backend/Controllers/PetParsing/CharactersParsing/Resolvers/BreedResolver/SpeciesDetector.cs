@@ -49,9 +49,9 @@ public class SpeciesDetector
             }
         }
 
-        // 3. Log and return null
+        // 3. Log and return 999 for unknown
         LogUnknownBreed(trimmedBreed);
-        return null;
+        return 999;
     }
 
     private Dictionary<string, int> LoadSpeciesBreeds(string path)

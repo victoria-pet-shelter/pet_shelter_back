@@ -119,16 +119,15 @@ public class PetParser
                             ? fullDescription.Substring(0, 100) + "..."
                             : fullDescription ?? "No name");
 
-                    int breedId = await _breedResolver.ResolveBreedIdAsync(breedText);
-                    var breed = await _db.Breeds.FindAsync(breedId);
-
-                    if (breed == null)
+                    int? speciesId = _speciesDetector.DetectSpeciesId(breedText);
+                    if (speciesId == null)
                     {
-                        Console.WriteLine($"⚠️ Failed to find or create breed: {breedText}");
-                        continue;
+                        Console.WriteLine($"⚠️ Could not detect species for breed: {breedText}");
+                        speciesId = 999; // fallback
                     }
 
-                    int? speciesId = breed.species_id;
+                    int breedId = await _breedResolver.ResolveBreedIdAsync(breedText);
+
 
                     result.Add(new Pets
                     {

@@ -1,0 +1,54 @@
+{
+  "dogs": {
+    "species_id": 1,
+    "breeds": [
+      "Labrador Retriever", "Лабрадор", "Labradors", "Vācu aitu suns", "German Shepherd", "Немецкая овчарка",
+      "French Bulldog", "Franču buldogs", "Французский бульдог", "Шпиц", "Pūdelis", "Poodle", "Пудель",
+      "Йоркширский терьер", "Jorkšīras terjers", "Yorkshire Terrier"
+    ]
+  },
+  "cats": {
+    "species_id": 2,
+    "breeds": [
+      "Persian", "Персидская кошка", "Persiešu kaķis", "Siamese", "Siāmas kaķis", "Сиамская кошка",
+      "Ragdoll", "Regdolls", "Рэгдолл", "British Shorthair", "Britu īsspalvainais", "Британская короткошёрстная"
+    ]
+  },
+  "rabbits": {
+    "species_id": 3,
+    "breeds": [
+      "Holland Lop", "Holandiešu austiņtrusis", "Голландский баран", "Angoras trusis", "Ангорский кролик",
+      "Netherland Dwarf", "Nīderlandes pundurtrusis", "Нидерландский карликовый"
+    ]
+  },
+  "birds": {
+    "species_id": 4,
+    "breeds": [
+      "Budgerigar", "Бюджигар", "Viļņainais papagailis", "Cockatiel", "Какаду", "Kakadu", "Canary", "Канарейка", "Kanārijputns"
+    ]
+  },
+  "rodents": {
+    "species_id": 5,
+    "breeds": [
+      "Hamster", "Хомяк", "Kāmītis", "Gerbil", "Gerbis", "Песчанка", "Guinea Pig", "Jūrascūciņa", "Морская свинка"
+    ]
+  },
+  "reptiles": {
+    "species_id": 6,
+    "breeds": [
+      "Bearded Dragon", "Bārdainais pūķis", "Бородатая агама", "Python", "Питон", "Pītons", "Iguana", "Игуана"
+    ]
+  },
+  "horses": {
+    "species_id": 7,
+    "breeds": [
+      "Arabian", "Арабская лошадь", "Arābu zirgs", "Thoroughbred", "Pilnasiņu šķirne", "Чистокровная верховая"
+    ]
+  },
+  "fish": {
+    "species_id": 8,
+    "breeds": [
+      "Goldfish", "Zelta zivtiņa", "Золотая рыбка", "Betta", "Бетта", "Guppy", "Гуппи", "Гуппі", "Tetra", "Тетра"
+    ]
+  }
+}
