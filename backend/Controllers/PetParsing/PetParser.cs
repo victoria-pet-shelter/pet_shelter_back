@@ -16,20 +16,20 @@ public class PetParser
     private readonly MongoService _mongoService;
     private readonly AppDbContext _db;
     private readonly BreedResolver _breedResolver;
-    private readonly WikidataFetcher _fetcher;
     private readonly ImageFetcher _imageFetcher;
+    private readonly SpeciesDetector _speciesDetector;
 
-    public PetParser(IHttpClientFactory httpClientFactory, MongoService mongoService, AppDbContext db, BreedResolver breedResolver, WikidataFetcher fetcher, ImageFetcher imageFetcher)
+    public PetParser(IHttpClientFactory httpClientFactory, MongoService mongoService, AppDbContext db, BreedResolver breedResolver, ImageFetcher imageFetcher, SpeciesDetector speciesDetector)
     {
         _httpClientFactory = httpClientFactory;
         _mongoService = mongoService;
         _db = db;
         _breedResolver = breedResolver;
-        _fetcher = fetcher;
         _imageFetcher = imageFetcher;
+        _speciesDetector = speciesDetector;
     }
 
-    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 0)
+    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 50)
     {
         List<Pets> result = new();
         int page = 1;
@@ -119,7 +119,6 @@ public class PetParser
                             ? fullDescription.Substring(0, 100) + "..."
                             : fullDescription ?? "No name");
 
-
                     int breedId = await _breedResolver.ResolveBreedIdAsync(breedText);
                     var breed = await _db.Breeds.FindAsync(breedId);
 
@@ -129,7 +128,7 @@ public class PetParser
                         continue;
                     }
 
-                    int speciesId = breed.species_id;
+                    int? speciesId = breed.species_id;
 
                     result.Add(new Pets
                     {
@@ -137,8 +136,8 @@ public class PetParser
                         name = cleanTitle,
                         description = fullDescription,
                         age = AgeResolver.ParseAge(ageText),
-                        breed_id = await _breedResolver.ResolveBreedIdAsync(breedText),
-                        species_id = speciesId,
+                        breed_id = breedId,
+                        species_id = speciesId ?? 1,
                         color = colorText,
                         gender_id = GenderResolver.ResolveGender(fullDescription, pageTitle),
                         mongo_image_id = photoId?.ToString(),
@@ -147,7 +146,7 @@ public class PetParser
                         external_url = fullLink,
                         cena = priceText
                     });
-                    // Console.WriteLine(petDoc.DocumentElement.OuterHtml); 
+
                     Console.WriteLine($"✅ Added pet: {cleanTitle}");
 
                     if (result.Count >= max) break;

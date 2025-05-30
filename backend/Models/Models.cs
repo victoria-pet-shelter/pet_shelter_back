@@ -41,7 +41,7 @@ public class Shelters
 
 public class Species
 {
-    public int id { get; set; }
+    public int? id { get; set; }
     public string? name { get; set; } // species name
 }
 

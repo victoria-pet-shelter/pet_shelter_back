@@ -129,10 +129,13 @@ builder.Services.AddScoped<PetParser>();
 builder.Services.AddScoped<BreedResolver>();
 builder.Services.AddSingleton<MongoService>();
 builder.Services.AddHttpClient();
-builder.Services.AddHostedService<SpeciesAutoUpdater>();
-builder.Services.AddSingleton<WikidataFetcher>();
 builder.Services.AddSingleton<IServiceScopeFactory>(sp => sp.GetRequiredService<IServiceScopeFactory>());
 builder.Services.AddTransient<ImageFetcher>();
+
+string breedsPath = Path.Combine(AppContext.BaseDirectory, "Data", "Seed", "species_breeds.json");
+string keywordsPath = Path.Combine(AppContext.BaseDirectory, "Data", "Seed", "species_keywords.json");
+string logPath = Path.Combine(AppContext.BaseDirectory, "Logs", "unknown_breeds.log");
+builder.Services.AddSingleton(new SpeciesDetector(breedsPath, keywordsPath, logPath));
 
 // CORS for Frontend
 builder.Services.AddCors(options =>
