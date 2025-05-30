@@ -60,15 +60,16 @@ public class SpeciesAutoUpdater : BackgroundService
 
                         foreach (var entry in dict)
                         {
-                            var value = entry.Value;
-                            if (value == null || value.breeds == null)
+                            string speciesName = entry.Key;
+                            var speciesData = entry.Value;
+
+                            if (speciesData == null || speciesData.breeds == null)
                             {
-                                _logger.LogWarning($"⚠️ Invalid or null entry for species '{entry.Key}'");
+                                _logger.LogWarning($"⚠️ Invalid or null entry for species '{speciesName}'");
                                 continue;
                             }
 
-                            int speciesId = value.species_id;
-                            string speciesName = entry.Key;
+                            int speciesId = speciesData.species_id;
 
                             bool speciesExists = await db.Species.AnyAsync(s => s.id == speciesId);
                             if (!speciesExists)
@@ -81,7 +82,7 @@ public class SpeciesAutoUpdater : BackgroundService
                                 _logger.LogInformation($"✅ Inserted species: {speciesName} (id={speciesId})");
                             }
 
-                            foreach (var breed in entry.Value.breeds)
+                            foreach (var breed in speciesData.breeds)
                             {
                                 if (string.IsNullOrWhiteSpace(breed)) continue;
 
