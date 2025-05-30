@@ -149,7 +149,7 @@ public class PetParser
                     });
                     // Console.WriteLine(petDoc.DocumentElement.OuterHtml); 
                     Console.WriteLine($"✅ Added pet: {cleanTitle}");
-                    
+
                     if (result.Count >= max) break;
                 }
                 catch (Exception ex)

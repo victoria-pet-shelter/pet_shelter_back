@@ -45,8 +45,8 @@ public class WikidataFetcher
 
         var response = await _httpClient.SendAsync(request);
         var content = await response.Content.ReadAsStringAsync();
-        Console.WriteLine("🔍 Wikidata response content:");
-        Console.WriteLine(content);
+        Console.WriteLine("🔍 Wikidata response content:"); // for test
+        Console.WriteLine(content); // for test
 
         using JsonDocument json = JsonDocument.Parse(content);
         var results = json.RootElement.GetProperty("results").GetProperty("bindings");
@@ -123,16 +123,53 @@ public class WikidataFetcher
         if (string.IsNullOrWhiteSpace(breed)) return "unknown";
 
         string lower = breed.ToLower();
+
+        // Known labels from Wikidata (animalLabel values)
+        Dictionary<string, string> labelToSpecies = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "dog", "dogs" },
+            { "herding dog", "dogs" },
+            { "terrier", "dogs" },
+            { "hound", "dogs" },
+            { "cattle dog", "dogs" },
+            { "shepherd dog", "dogs" },
+            { "swiss mountain dogs", "dogs" },
+            { "toy dog", "dogs" },
+            { "schnauzer", "dogs" },
+            { "retriever", "dogs" },
+            { "gun dog", "dogs" },
+            { "spitz", "dogs" },
+            
+            { "cat", "cats" },
+            { "rabbit", "rabbits" },
+            { "bird", "birds" },
+            { "rodent", "rodents" },
+            { "reptile", "reptiles" },
+            { "horse", "horses" },
+            { "fish", "fish" }
+        };
+
+        // Try mapping directly from breed keyword list
         foreach (var pair in _speciesKeywords)
         {
             foreach (var keyword in pair.Value)
             {
                 if (lower.Contains(keyword.ToLower()))
+                {
                     return pair.Key;
+                }
             }
         }
+
+        // Try mapping from fallback animalLabel
+        if (_lastAnimalLabel != null && labelToSpecies.TryGetValue(_lastAnimalLabel.ToLower(), out var mapped))
+        {
+            return mapped;
+        }
+
         return "unknown";
     }
+
 
     public class SpeciesEntry
     {

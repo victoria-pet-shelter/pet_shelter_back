@@ -135,6 +135,7 @@ public class SheltersController : ControllerBase
             return Problem("Error: " + ex.Message);
         }
     }
+
     [Authorize(Roles = "shelter_owner")]
     [HttpPatch("{id}")]
     public async Task<IActionResult> Patch(Guid id, [FromBody] ShelterUpdateDto dto)
@@ -175,7 +176,7 @@ public class SheltersController : ControllerBase
             return Problem("Error: " + ex.Message);
         }
     }
-    
+
     [Authorize(Roles = "shelter_owner")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
