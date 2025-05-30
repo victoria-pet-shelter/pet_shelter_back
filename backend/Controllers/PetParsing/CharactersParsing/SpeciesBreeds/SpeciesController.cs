@@ -13,18 +13,19 @@ public class SpeciesController : ControllerBase
         _fetcher = fetcher;
     }
 
-    [HttpPost("update")]
+    [HttpGet("update")]
     public async Task<IActionResult> UpdateJson()
     {
         try
         {
-            string path = Path.Combine(Directory.GetCurrentDirectory(), "species_breeds.json");
+            string path = Path.Combine(AppContext.BaseDirectory, "Data", "Seed", "species_breeds.json");
             await _fetcher.UpdateSpeciesBreedsJsonAsync(path);
-            return Ok(new { message = "species_breeds.json updated" });
+            return Ok(new { message = "✅ species_breeds.json updated" });
         }
         catch (System.Exception ex)
         {
-            return Problem("Error: " + ex.Message);
+            return Problem("❌ Error: " + ex.Message);
         }
     }
 }
+

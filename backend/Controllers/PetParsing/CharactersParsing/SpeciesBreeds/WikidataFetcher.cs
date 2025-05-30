@@ -41,9 +41,12 @@ public class WikidataFetcher
         var url = Endpoint + "?query=" + Uri.EscapeDataString(sparqlQuery);
         var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Add("Accept", "application/sparql-results+json");
+        request.Headers.Add("User-Agent", "PetShelterBot/1.0 (https://example.com/contact)");
 
         var response = await _httpClient.SendAsync(request);
         var content = await response.Content.ReadAsStringAsync();
+        Console.WriteLine("🔍 Wikidata response content:");
+        Console.WriteLine(content);
 
         using JsonDocument json = JsonDocument.Parse(content);
         var results = json.RootElement.GetProperty("results").GetProperty("bindings");
@@ -78,6 +81,9 @@ public class WikidataFetcher
         }
 
         var jsonOut = JsonSerializer.Serialize(speciesMap, new JsonSerializerOptions { WriteIndented = true });
+        Console.WriteLine("🟨 JSON preview:");
+        Console.WriteLine(jsonOut);
+
         await File.WriteAllTextAsync(outputPath, jsonOut);
 
         Console.WriteLine($"✅ species_breeds.json updated with {speciesMap.Count} species groups.");
