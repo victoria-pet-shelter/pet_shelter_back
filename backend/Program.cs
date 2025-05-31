@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
+using MongoDB.Driver;
+using ImageFetchers;
 using System.Text;
 using DotNetEnv;
 using Config;
@@ -74,6 +76,19 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+var mongoUri = Environment.GetEnvironmentVariable("MONGO_URI") ?? throw new Exception("Missing MONGO_URI in .env");
+
+// MongoClient
+builder.Services.AddSingleton<IMongoClient>(sp =>
+    new MongoClient(mongoUri));
+
+builder.Services.AddSingleton(sp =>
+{
+    var client = sp.GetRequiredService<IMongoClient>();
+    return client.GetDatabase("PetShelterMedia");
+});
+
+
 // Controllers и Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -111,11 +126,29 @@ builder.Services.AddSwaggerGen(c =>
 // Pets Parsing
 builder.Services.AddHostedService<PetImportBackgroundService>();
 builder.Services.AddScoped<PetParser>();
+builder.Services.AddScoped<BreedResolver>();
 builder.Services.AddSingleton<MongoService>();
 builder.Services.AddHttpClient();
+builder.Services.AddSingleton<IServiceScopeFactory>(sp => sp.GetRequiredService<IServiceScopeFactory>());
+builder.Services.AddTransient<ImageFetcher>();
+
+string breedsPath = Path.Combine(AppContext.BaseDirectory, "Data", "Seed", "species_breeds.json");
+string keywordsPath = Path.Combine(AppContext.BaseDirectory, "Data", "Seed", "species_keywords.json");
+string logPath = Path.Combine(AppContext.BaseDirectory, "Logs", "unknown_breeds.log");
+builder.Services.AddSingleton(new SpeciesDetector(breedsPath, keywordsPath, logPath));
+
+// CORS for Frontend
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+    });
+});
+
 
 // Logging closed 
-// builder.Logging.ClearProviders();
+builder.Logging.ClearProviders();
 
 var app = builder.Build();
 
@@ -123,6 +156,8 @@ if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
 }
+
+app.UseCors("AllowAll");
 
 app.UseSwagger();
 app.UseSwaggerUI();

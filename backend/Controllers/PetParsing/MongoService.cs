@@ -1,9 +1,9 @@
-using MongoDB.Bson;
-using MongoDB.Driver;
-using MongoDB.Driver.GridFS;
-using System;
-using System.IO;
 using System.Threading.Tasks;
+using MongoDB.Driver.GridFS;
+using MongoDB.Driver;
+using MongoDB.Bson;
+using System.IO;
+using System;
 
 public class MongoService
 {
@@ -16,6 +16,10 @@ public class MongoService
         var client = new MongoClient(connectionString);
         _database = client.GetDatabase("PetShelterMedia");
         _bucket = new GridFSBucket(_database);
+    }
+    public GridFSBucket GetBucket()
+    {
+        return new GridFSBucket(_database);
     }
 
     public async Task<ObjectId> SaveImageAsync(byte[] data)

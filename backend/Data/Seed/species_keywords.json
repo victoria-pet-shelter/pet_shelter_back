@@ -1,0 +1,10 @@
+{
+  "1": ["dog", "puppy", "hound", "terrier", "овчарка", "собака", "щенок", "buldogs", "собак", "терьер", "терьеры", "сука", "кобель", "kuce", "suns", "kucēns", "kucēni", "kucīti", "terjers"],
+  "2": ["cat", "kitten", "кошка", "кот", "котёнок", "kaķis", "kaķene", "kaķēns", "persietis", "siāmas", "британка", "брит", "британская", "британец"],
+  "3": ["rabbit", "bunny", "кролик", "крольчиха", "trusis", "trusene", "austiņtrusis", "pundurtrusis"],
+  "4": ["bird", "parrot", "попугай", "птица", "papagailis", "putns", "kanārijputns", "канарейка"],
+  "5": ["hamster", "gerbil", "песчанка", "хомяк", "крыса", "мышь", "морская свинка", "jūrascūciņa", "kāmītis", "pele"],
+  "6": ["reptile", "snake", "lizard", "питон", "змея", "игуана", "варан", "čūska", "rāpuļi", "iguāna", "ķirzaka"],
+  "7": ["horse", "pony", "жеребец", "лошадь", "zirgs", "kumeļš", "zirgi", "ķēve", "zirgspēks"],
+  "8": ["fish", "aquarium", "рыбка", "рыба", "akvārijs", "zivs", "zivtiņa", "аквариум"]
+}

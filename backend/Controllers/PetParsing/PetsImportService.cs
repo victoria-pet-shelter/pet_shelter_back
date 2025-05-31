@@ -36,13 +36,16 @@ public class PetImportBackgroundService : BackgroundService
                 await db.SaveChangesAsync();
 
                 Console.WriteLine($"✅ Imported {pets.Count} pets at {DateTime.Now}");
+                int totalPets = await db.Pets.CountAsync();
+                Console.WriteLine($"✅ Total: [{totalPets}] pets in database.");
+                await Task.Delay(1000);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error during import: {ex.Message}");
+                Console.WriteLine($"❌ Error during import: {ex}");
             }
 
-            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken); // every 60 minutes
+            await Task.Delay(TimeSpan.FromMinutes(60), stoppingToken); // every N minutes
         }
     }
 

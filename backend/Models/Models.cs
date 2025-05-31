@@ -41,7 +41,7 @@ public class Shelters
 
 public class Species
 {
-    public int id { get; set; }
+    public int? id { get; set; }
     public string? name { get; set; } // species name
 }
 
@@ -63,15 +63,15 @@ public class Pets
     public Guid id { get; set; } // UUID
     public int species_id { get; set; }
     public int breed_id { get; set; }
-    public int gender_id { get; set; }
+    public int? gender_id { get; set; }
     public string? name { get; set; }
-    public float age { get; set; }
+    public float? age { get; set; }
     public string? color { get; set; }
-    public string? health { get; set; }
     public int status_id { get; set; }
     public string? mongo_image_id { get; set; }
     public string? description { get; set; }
     public string? image { get; set; }
+    public string? cena { get; set; }
     public DateTime created_at { get; set; }
     public Guid shelter_id { get; set; } // UUID of shelter
     // For MongoDB
