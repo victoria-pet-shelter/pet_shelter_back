@@ -95,7 +95,7 @@ public class PetParser
 
 
                     var breedText = GetFieldValue(petDoc, "Šķirne:");
-                    // Console.WriteLine($"[DEBUG] breedText: {breedText}");
+                    Console.WriteLine($"[DEBUG] breedText: {breedText}");
 
                     var ageText = GetFieldValue(petDoc, "Vecums:");
                     // Console.WriteLine($"[DEBUG] ageText: {ageText}");
