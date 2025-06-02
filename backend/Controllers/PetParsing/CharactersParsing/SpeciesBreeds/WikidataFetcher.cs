@@ -21,44 +21,63 @@ public class WikidataFetcher
 
     private static readonly Dictionary<string, (string Query, int SpeciesId)> SpeciesQueries = new()
     {
-        ["dogs"] = (@"SELECT ?breedLabel WHERE {
+        ["dogs"] = (@"SELECT ?en ?lv ?ru WHERE {
             ?breed wdt:P31/wdt:P279* wd:Q39367.
-            SERVICE wikibase:label { bd:serviceParam wikibase:language 'en,lv,ru'. }
+            OPTIONAL { ?breed rdfs:label ?en FILTER (lang(?en) = 'en') }
+            OPTIONAL { ?breed rdfs:label ?lv FILTER (lang(?lv) = 'lv') }
+            OPTIONAL { ?breed rdfs:label ?ru FILTER (lang(?ru) = 'ru') }
         } LIMIT 1000", 1),
-
-        ["cats"] = (@"SELECT ?breedLabel WHERE {
-            ?breed wdt:P31/wdt:P279* wd:Q1360758.
-            SERVICE wikibase:label { bd:serviceParam wikibase:language 'en,lv,ru'. }
+        ["cats"] = (@"SELECT ?en ?lv ?ru WHERE {
+            ?breed wdt:P31/wdt:P279* wd:Q729.
+            OPTIONAL { ?breed rdfs:label ?en FILTER (lang(?en) = 'en') }
+            OPTIONAL { ?breed rdfs:label ?lv FILTER (lang(?lv) = 'lv') }
+            OPTIONAL { ?breed rdfs:label ?ru FILTER (lang(?ru) = 'ru') }
         } LIMIT 1000", 2),
-
-        ["rabbits"] = (@"SELECT ?breedLabel WHERE {
-            ?breed wdt:P31/wdt:P279* wd:Q66218453.
-            SERVICE wikibase:label { bd:serviceParam wikibase:language 'en,lv,ru'. }
+        ["rabbits"] = (@"SELECT ?en ?lv ?ru WHERE {
+            ?breed wdt:P31/wdt:P279* wd:Q7366.
+            OPTIONAL { ?breed rdfs:label ?en FILTER (lang(?en) = 'en') }
+            OPTIONAL { ?breed rdfs:label ?lv FILTER (lang(?lv) = 'lv') }
+            OPTIONAL { ?breed rdfs:label ?ru FILTER (lang(?ru) = 'ru') }
         } LIMIT 1000", 3),
-
-        ["birds"] = (@"SELECT ?breedLabel WHERE {
-            ?breed wdt:P31/wdt:P279* wd:Q56893223.
-            SERVICE wikibase:label { bd:serviceParam wikibase:language 'en,lv,ru'. }
+        ["birds"] = (@"SELECT ?en ?lv ?ru WHERE {
+            {
+                ?breed wdt:P31/wdt:P279* wd:Q512553.
+            } UNION {
+                ?breed wdt:P31/wdt:P279* wd:Q5113.
+            } UNION {
+                ?breed wdt:P31/wdt:P279* wd:Q821768.
+            }
+            OPTIONAL { ?breed rdfs:label ?en FILTER (lang(?en) = 'en') }
+            OPTIONAL { ?breed rdfs:label ?lv FILTER (lang(?lv) = 'lv') }
+            OPTIONAL { ?breed rdfs:label ?ru FILTER (lang(?ru) = 'ru') }
         } LIMIT 1000", 4),
-
-        ["rodents"] = (@"SELECT ?breedLabel WHERE {
+        ["rodents"] = (@"SELECT ?en ?lv ?ru WHERE {
             ?breed wdt:P31/wdt:P279* wd:Q55983715.
-            SERVICE wikibase:label { bd:serviceParam wikibase:language 'en,lv,ru'. }
+            OPTIONAL { ?breed rdfs:label ?en FILTER (lang(?en) = 'en') }
+            OPTIONAL { ?breed rdfs:label ?lv FILTER (lang(?lv) = 'lv') }
+            OPTIONAL { ?breed rdfs:label ?ru FILTER (lang(?ru) = 'ru') }
         } LIMIT 1000", 5),
-
-        ["reptiles"] = (@"SELECT ?breedLabel WHERE {
-            ?breed wdt:P31/wdt:P279* wd:Q310892.
-            SERVICE wikibase:label { bd:serviceParam wikibase:language 'en,lv,ru'. }
+        ["reptiles"] = (@"SELECT ?en ?lv ?ru WHERE {
+            ?breed wdt:P31/wdt:P279* wd:Q10884.
+            OPTIONAL { ?breed rdfs:label ?en FILTER (lang(?en) = 'en') }
+            OPTIONAL { ?breed rdfs:label ?lv FILTER (lang(?lv) = 'lv') }
+            OPTIONAL { ?breed rdfs:label ?ru FILTER (lang(?ru) = 'ru') }
         } LIMIT 1000", 6),
-
-        ["horses"] = (@"SELECT ?breedLabel WHERE {
-            ?breed wdt:P31/wdt:P279* wd:Q634802.
-            SERVICE wikibase:label { bd:serviceParam wikibase:language 'en,lv,ru'. }
+        ["horses"] = (@"SELECT ?en ?lv ?ru WHERE {
+            ?breed wdt:P31/wdt:P279* wd:Q726.
+            OPTIONAL { ?breed rdfs:label ?en FILTER (lang(?en) = 'en') }
+            OPTIONAL { ?breed rdfs:label ?lv FILTER (lang(?lv) = 'lv') }
+            OPTIONAL { ?breed rdfs:label ?ru FILTER (lang(?ru) = 'ru') }
         } LIMIT 1000", 7),
-
-        ["fish"] = (@"SELECT ?breedLabel WHERE {
-            ?breed wdt:P31/wdt:P279* wd:Q28885052.
-            SERVICE wikibase:label { bd:serviceParam wikibase:language 'en,lv,ru'. }
+        ["fish"] = (@"SELECT ?en ?lv ?ru WHERE {
+            {
+                ?breed wdt:P31/wdt:P279* wd:Q152.
+            } UNION {
+                ?breed wdt:P31/wdt:P279* wd:Q521682.
+            }
+            OPTIONAL { ?breed rdfs:label ?en FILTER (lang(?en) = 'en') }
+            OPTIONAL { ?breed rdfs:label ?lv FILTER (lang(?lv) = 'lv') }
+            OPTIONAL { ?breed rdfs:label ?ru FILTER (lang(?ru) = 'ru') }
         } LIMIT 1000", 8)
     };
 
@@ -83,27 +102,24 @@ public class WikidataFetcher
                 var entry = new SpeciesEntry
                 {
                     species_id = speciesId,
-                    breeds = new List<string>()
+                    breeds = new List<MultilangBreed>()
                 };
 
                 foreach (var result in results.EnumerateArray())
                 {
-                    if (result.TryGetProperty("breedLabel", out var labelElem))
-                    {
-                        string? label = labelElem.GetProperty("value").GetString();
+                    string? en = result.TryGetProperty("en", out var enEl) ? enEl.GetProperty("value").GetString() : null;
+                    string? lv = result.TryGetProperty("lv", out var lvEl) ? lvEl.GetProperty("value").GetString() : null;
+                    string? ru = result.TryGetProperty("ru", out var ruEl) ? ruEl.GetProperty("value").GetString() : null;
 
-                        if (!string.IsNullOrWhiteSpace(label) &&
-                            !label.StartsWith("Q") &&
-                            !entry.breeds.Contains(label, StringComparer.OrdinalIgnoreCase))
-                        {
-                            entry.breeds.Add(label);
-                        }
-                    }
+                    if (string.IsNullOrWhiteSpace(en) && string.IsNullOrWhiteSpace(lv) && string.IsNullOrWhiteSpace(ru))
+                        continue;
+
+                    entry.breeds.Add(new MultilangBreed { en = en, lv = lv, ru = ru });
                 }
 
                 speciesMap[species] = entry;
                 Console.WriteLine($"✅ Retrieved {entry.breeds.Count} {species} breeds from Wikidata.");
-                await Task.Delay(1000); // чтобы не словить бан
+                await Task.Delay(1000);
             }
             catch (Exception ex)
             {
@@ -116,12 +132,16 @@ public class WikidataFetcher
         Console.WriteLine($"✅ species_breeds.json updated with {speciesMap.Count} species groups.");
     }
 
+    public class MultilangBreed
+    {
+        public string? en { get; set; }
+        public string? lv { get; set; }
+        public string? ru { get; set; }
+    }
+
     public class SpeciesEntry
     {
-        [JsonPropertyName("species_id")]
         public int species_id { get; set; }
-
-        [JsonPropertyName("breeds")]
-        public List<string> breeds { get; set; } = new();
+        public List<MultilangBreed> breeds { get; set; } = new();
     }
 }

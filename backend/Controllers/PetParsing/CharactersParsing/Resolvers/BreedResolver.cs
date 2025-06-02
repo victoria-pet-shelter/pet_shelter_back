@@ -33,11 +33,10 @@ public class BreedResolver
     {
         if (string.IsNullOrWhiteSpace(breedText))
         {
-            // Console.WriteLine("⚠️ breedText is empty. Defaulting to ID 1.");
             return 1;
         }
 
-        var lower = breedText.ToLower().Trim();
+        var lower = breedText.ToLowerInvariant().Trim();
 
         var breed = await _db.Breeds.FirstOrDefaultAsync(b => b.name.ToLower() == lower);
         if (breed != null)
@@ -45,11 +44,12 @@ public class BreedResolver
             return breed.id;
         }
 
-        int speciesId = 1;
+        int speciesId = 999;
         foreach (var pair in _speciesMap)
         {
             var entry = pair.Value;
-            if (entry?.breeds?.Exists(b => string.Equals(b, lower, StringComparison.OrdinalIgnoreCase)) == true)
+            if (entry != null && entry.breeds != null &&
+                entry.breeds.Exists(b => string.Equals(b, lower, StringComparison.OrdinalIgnoreCase)))
             {
                 speciesId = entry.species_id;
                 break;
@@ -75,11 +75,5 @@ public class BreedResolver
             Console.WriteLine($"❌ Failed to create breed '{breedText}': {ex.Message}");
             return 1;
         }
-    }
-
-    private class SpeciesEntry
-    {
-        public int species_id { get; set; }
-        public List<string> breeds { get; set; } = new();
     }
 }

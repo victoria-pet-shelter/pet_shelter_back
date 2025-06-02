@@ -137,7 +137,7 @@ public class PetParser
                         name = cleanTitle,
                         description = fullDescription,
                         age = AgeResolver.ParseAge(ageText),
-                        breed_id = await _breedResolver.ResolveBreedIdAsync(breedText),
+                        breed_id = breedId,
                         species_id = speciesId,
                         color = colorText,
                         gender_id = GenderResolver.ResolveGender(fullDescription, pageTitle),
@@ -147,6 +147,7 @@ public class PetParser
                         external_url = fullLink,
                         cena = priceText
                     });
+                    
                     // Console.WriteLine(petDoc.DocumentElement.OuterHtml); 
                     Console.WriteLine($"✅ Added pet: {cleanTitle}");
 
