@@ -12,7 +12,7 @@ Pet Shelter is a web application for managing pets in shelters. It supports user
 - 🧠 Breed, gender, age, and price resolvers using NLP and regex
 - 🗄️ PostgreSQL (relational) + MongoDB (image storage)
 - 🧾 Swagger UI for API testing and documentation
-- 🔒 AES encryption of user data (email, phone)
+- 🔒 AES encryption of user data (email, phone, password)
 - 🔁 Background service for automatic import
 
 ---
