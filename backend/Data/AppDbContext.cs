@@ -96,6 +96,7 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Cascade);
 
         // INDEXES
+        // WHERE, JOIN, EXISTS, ANY, FindAsync = index need
 
         // Users
         modelBuilder.Entity<Users>()

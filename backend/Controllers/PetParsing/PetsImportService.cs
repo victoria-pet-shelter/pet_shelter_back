@@ -54,7 +54,9 @@ public class PetImportBackgroundService : BackgroundService
 
     private async Task<Users> EnsureSystemUserAsync(AppDbContext db)
     {
-        var user = await db.Users.FirstOrDefaultAsync(u => u.email == "ss@parser.local");
+        string encryptedEmail = EncryptionService.Encrypt("ss@parser.local");
+        var user = await db.Users.FirstOrDefaultAsync(u => u.email == encryptedEmail);
+
         if (user != null)
         {
             return user;
@@ -64,7 +66,7 @@ public class PetImportBackgroundService : BackgroundService
         {
             id = Guid.NewGuid(),
             name = "ss.lv parser",
-            email = "ss@parser.local",
+            email = encryptedEmail,
             password = "",
             role = "shelter_owner"
         };
@@ -80,7 +82,10 @@ public class PetImportBackgroundService : BackgroundService
 
     private async Task<Shelters> EnsureSystemShelterAsync(AppDbContext db, Guid userId)
     {
-        var shelter = await db.Shelters.FirstOrDefaultAsync(s => s.email == "ss@parser.local");
+        // Encrypt
+        string encryptedEmail = EncryptionService.Encrypt("ss@parser.local");
+        var shelter = await db.Shelters.FirstOrDefaultAsync(s => s.email == encryptedEmail);
+
         if (shelter != null)
         {
             return shelter;
@@ -91,7 +96,7 @@ public class PetImportBackgroundService : BackgroundService
             id = Guid.NewGuid(),
             shelter_owner_id = userId,
             name = "Imported from ss.lv",
-            email = "ss@parser.local",
+            email = encryptedEmail, // Encrypt
             address = "internet",
             phone = "0000",
             description = "Dates from website",

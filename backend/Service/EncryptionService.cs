@@ -1,0 +1,43 @@
+using System.Security.Cryptography;
+using System.Text;
+
+public static class EncryptionService
+{
+    private static readonly string Key = Environment.GetEnvironmentVariable("ENCRYPTION_KEY") ?? "12345678901234567890123456789012"; // 32 chars for AES-256
+
+    public static string Encrypt(string plainText)
+    {
+        using var aes = Aes.Create();
+        aes.Key = Encoding.UTF8.GetBytes(Key);
+        aes.GenerateIV();
+
+        using var encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+        using var ms = new MemoryStream();
+        ms.Write(aes.IV, 0, aes.IV.Length); // prepend IV
+        using var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write);
+        using var sw = new StreamWriter(cs);
+        sw.Write(plainText);
+        sw.Flush();
+        cs.FlushFinalBlock();
+
+        return Convert.ToBase64String(ms.ToArray());
+    }
+
+    public static string Decrypt(string cipherText)
+    {
+        var fullCipher = Convert.FromBase64String(cipherText);
+
+        using var aes = Aes.Create();
+        aes.Key = Encoding.UTF8.GetBytes(Key);
+
+        var iv = new byte[16];
+        Array.Copy(fullCipher, iv, 16);
+        aes.IV = iv;
+
+        using var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+        using var ms = new MemoryStream(fullCipher, 16, fullCipher.Length - 16);
+        using var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
+        using var sr = new StreamReader(cs);
+        return sr.ReadToEnd();
+    }
+}

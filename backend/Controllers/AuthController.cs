@@ -24,7 +24,6 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] UserRegisterDto user)
     {
-        // Validation - > UserRegisterValidator.cs
         var validator = new UserRegisterValidator();
         var errors = validator.Validate(user);
 
@@ -32,27 +31,29 @@ public class AuthController : ControllerBase
             return BadRequest(new { errors });
 
         try
-        {
+        { // Encrypt
+            string encryptedEmail = EncryptionService.Encrypt(user.email);
+
             if (await db.Users.AnyAsync(u => u.name == user.name))
                 return BadRequest("Username already exists.");
 
-            if (await db.Users.AnyAsync(u => u.email == user.email))
+            if (await db.Users.AnyAsync(u => u.email == encryptedEmail))
                 return BadRequest("Email already exists.");
 
             var newUser = new Users
             {
                 id = Guid.NewGuid(),
                 name = user.name,
-                email = user.email,
-                password = BCrypt.Net.BCrypt.HashPassword(user.password),
+                email = encryptedEmail,// Encrypt
+                password = BCrypt.Net.BCrypt.HashPassword(user.password), // Encrypt
                 role = user.role
             };
-            // Register Transaction
+
             using var transaction = await db.Database.BeginTransactionAsync();
             await db.Users.AddAsync(newUser);
             await db.SaveChangesAsync();
             await transaction.CommitAsync();
-            
+
             return Ok("User registered successfully.");
         }
         catch (Exception ex)
@@ -64,15 +65,16 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] UserLoginDto loginRequest)
     {
-        // Validation - > UserLoginValidator.cs
         var validator = new UserLoginValidator();
         var errors = validator.Validate(loginRequest);
         if (errors.Any())
             return BadRequest(new { errors });
 
         try
-        {
-            var user = await db.Users.FirstOrDefaultAsync(u => u.email == loginRequest.email);
+        {   // Encrypt
+            string encryptedEmail = EncryptionService.Encrypt(loginRequest.email);
+
+            var user = await db.Users.FirstOrDefaultAsync(u => u.email == encryptedEmail);
             if (user == null)
                 return Unauthorized("Incorrect email or password.");
 
@@ -87,7 +89,8 @@ public class AuthController : ControllerBase
                 token,
                 id = user.id,
                 name = user.name,
-                email = user.email,
+                email = EncryptionService.Decrypt(user.email),// Encrypt
+                phone = user.phone != null ? EncryptionService.Decrypt(user.phone) : null, // Encrypt
                 role = user.role
             });
         }
@@ -96,4 +99,5 @@ public class AuthController : ControllerBase
             return Problem("Error: " + ex.Message);
         }
     }
+
 }
