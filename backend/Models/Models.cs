@@ -71,6 +71,8 @@ public class Pets
     public string? mongo_image_id { get; set; }
     public string? description { get; set; }
     public string? image { get; set; }
+    public string? category { get; set; } // пример: "rodents/ferret"
+
     public string? cena { get; set; }
     public DateTime created_at { get; set; }
     public Guid shelter_id { get; set; } // UUID of shelter

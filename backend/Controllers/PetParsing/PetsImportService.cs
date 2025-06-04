@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using Models;
 using System;
+using System.Collections.Generic;
 
 public class PetImportBackgroundService : BackgroundService
 {
@@ -25,22 +26,29 @@ public class PetImportBackgroundService : BackgroundService
 
             try
             {
-                // Find for import
                 var systemUser = await EnsureSystemUserAsync(db);
                 var systemShelter = await EnsureSystemShelterAsync(db, systemUser.id);
 
-                // Parsing
-                var pets = await parser.ParseFromSsLvAsync(systemShelter.id);
+                var parsedPets = await parser.ParseFromSsLvAsync(systemShelter.id);
 
-                // Parsing Transactrion
+                // Filter out duplicates before saving
+                List<Pets> newPets = new();
+                foreach (var pet in parsedPets)
+                {
+                    bool exists = await db.Pets.AnyAsync(x => x.external_url == pet.external_url);
+                    if (!exists)
+                        newPets.Add(pet);
+                }
+
                 using var transaction = await db.Database.BeginTransactionAsync();
-                await db.Pets.AddRangeAsync(pets);
-                await db.SaveChangesAsync();
+                await db.Pets.AddRangeAsync(newPets);
+                await db.SaveChangesAsync(); // problem
                 await transaction.CommitAsync();
 
-                Console.WriteLine($"✅ Imported {pets.Count} pets at {DateTime.Now}");
+                Console.WriteLine($"✅ Imported {newPets.Count} new pets at {DateTime.Now}");
                 int totalPets = await db.Pets.CountAsync();
-                Console.WriteLine($"✅ Total: [{totalPets}] pets in database.");
+                Console.WriteLine($"📊 Total pets in database: {totalPets}");
+
                 await Task.Delay(1000);
             }
             catch (Exception ex)
@@ -48,7 +56,7 @@ public class PetImportBackgroundService : BackgroundService
                 Console.WriteLine($"❌ Error during import: {ex}");
             }
 
-            await Task.Delay(TimeSpan.FromMinutes(60), stoppingToken); // every N minutes
+            await Task.Delay(TimeSpan.FromMinutes(60), stoppingToken);
         }
     }
 
@@ -58,9 +66,7 @@ public class PetImportBackgroundService : BackgroundService
         var user = await db.Users.FirstOrDefaultAsync(u => u.email == encryptedEmail);
 
         if (user != null)
-        {
             return user;
-        }
 
         var newUser = new Users
         {
@@ -71,7 +77,6 @@ public class PetImportBackgroundService : BackgroundService
             role = "shelter_owner"
         };
 
-        // Transaction
         using var transaction = await db.Database.BeginTransactionAsync();
         await db.Users.AddAsync(newUser);
         await db.SaveChangesAsync();
@@ -82,28 +87,24 @@ public class PetImportBackgroundService : BackgroundService
 
     private async Task<Shelters> EnsureSystemShelterAsync(AppDbContext db, Guid userId)
     {
-        // Encrypt
         string? encryptedEmail = EncryptionService.Encrypt("ss@parser.local");
         var shelter = await db.Shelters.FirstOrDefaultAsync(s => s.email == encryptedEmail);
 
         if (shelter != null)
-        {
             return shelter;
-        }
 
         var newShelter = new Shelters
         {
             id = Guid.NewGuid(),
             shelter_owner_id = userId,
             name = "Imported from ss.lv",
-            email = encryptedEmail, // Encrypt
+            email = encryptedEmail,
             address = "internet",
             phone = "0000",
             description = "Dates from website",
             created_at = DateTime.UtcNow
         };
 
-        // Transaction
         using var transaction = await db.Database.BeginTransactionAsync();
         await db.Shelters.AddAsync(newShelter);
         await db.SaveChangesAsync();
