@@ -45,7 +45,7 @@ public class PetImportBackgroundService : BackgroundService
                 Console.WriteLine($"❌ Error during import: {ex}");
             }
 
-            await Task.Delay(TimeSpan.FromMinutes(60), stoppingToken); // every N minutes
+            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken); // every N minutes
         }
     }
 

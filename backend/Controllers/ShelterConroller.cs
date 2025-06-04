@@ -125,8 +125,11 @@ public class SheltersController : ControllerBase
                 created_at = DateTime.UtcNow
             };
 
+            // Create Shelter Transaction
+            using var transaction = await db.Database.BeginTransactionAsync();
             await db.Shelters.AddAsync(newShelter);
             await db.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return Ok(newShelter);
         }
@@ -167,7 +170,10 @@ public class SheltersController : ControllerBase
             if (dto.description != null)
                 shelter.description = dto.description;
 
+            // Transaction
+            using var transaction = await db.Database.BeginTransactionAsync();
             await db.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return Ok(shelter);
         }
@@ -191,9 +197,11 @@ public class SheltersController : ControllerBase
 
         try
         {
+            using var transaction = await db.Database.BeginTransactionAsync();
             db.Shelters.Remove(shelter);
             await db.SaveChangesAsync();
-
+            await transaction.CommitAsync();
+            
             return Ok(new { message = "Shelter deleted." });
         }
         catch (Exception ex)

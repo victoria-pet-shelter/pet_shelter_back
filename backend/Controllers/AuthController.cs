@@ -47,10 +47,12 @@ public class AuthController : ControllerBase
                 password = BCrypt.Net.BCrypt.HashPassword(user.password),
                 role = user.role
             };
-
+            // Register Transaction
+            using var transaction = await db.Database.BeginTransactionAsync();
             await db.Users.AddAsync(newUser);
             await db.SaveChangesAsync();
-
+            await transaction.CommitAsync();
+            
             return Ok("User registered successfully.");
         }
         catch (Exception ex)
