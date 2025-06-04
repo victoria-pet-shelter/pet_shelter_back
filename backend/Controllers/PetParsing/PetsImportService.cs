@@ -48,13 +48,13 @@ public class PetImportBackgroundService : BackgroundService
                 Console.WriteLine($"❌ Error during import: {ex}");
             }
 
-            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken); // every N minutes
+            await Task.Delay(TimeSpan.FromMinutes(60), stoppingToken); // every N minutes
         }
     }
 
     private async Task<Users> EnsureSystemUserAsync(AppDbContext db)
     {
-        string encryptedEmail = EncryptionService.Encrypt("ss@parser.local");
+        string? encryptedEmail = EncryptionService.Encrypt("ss@parser.local");
         var user = await db.Users.FirstOrDefaultAsync(u => u.email == encryptedEmail);
 
         if (user != null)
@@ -83,7 +83,7 @@ public class PetImportBackgroundService : BackgroundService
     private async Task<Shelters> EnsureSystemShelterAsync(AppDbContext db, Guid userId)
     {
         // Encrypt
-        string encryptedEmail = EncryptionService.Encrypt("ss@parser.local");
+        string? encryptedEmail = EncryptionService.Encrypt("ss@parser.local");
         var shelter = await db.Shelters.FirstOrDefaultAsync(s => s.email == encryptedEmail);
 
         if (shelter != null)

@@ -3,17 +3,20 @@ using System.Text;
 
 public static class EncryptionService
 {
-    private static readonly string Key = Environment.GetEnvironmentVariable("ENCRYPTION_KEY") ?? "12345678901234567890123456789012"; // 32 chars for AES-256
+    private static readonly string Key = Environment.GetEnvironmentVariable("ENCRYPTION_KEY") ?? "12345678901234567890123456789012"; // 32 символа
 
-    public static string Encrypt(string plainText)
+    public static string? Encrypt(string? plainText)
     {
+        if (string.IsNullOrWhiteSpace(plainText))
+            return null;
+
         using var aes = Aes.Create();
         aes.Key = Encoding.UTF8.GetBytes(Key);
         aes.GenerateIV();
 
         using var encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
         using var ms = new MemoryStream();
-        ms.Write(aes.IV, 0, aes.IV.Length); // prepend IV
+        ms.Write(aes.IV, 0, aes.IV.Length);
         using var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write);
         using var sw = new StreamWriter(cs);
         sw.Write(plainText);
@@ -23,8 +26,11 @@ public static class EncryptionService
         return Convert.ToBase64String(ms.ToArray());
     }
 
-    public static string Decrypt(string cipherText)
+    public static string? Decrypt(string? cipherText)
     {
+        if (string.IsNullOrWhiteSpace(cipherText))
+            return null;
+
         var fullCipher = Convert.FromBase64String(cipherText);
 
         using var aes = Aes.Create();

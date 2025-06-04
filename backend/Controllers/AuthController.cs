@@ -32,7 +32,7 @@ public class AuthController : ControllerBase
 
         try
         { // Encrypt
-            string encryptedEmail = EncryptionService.Encrypt(user.email);
+            string? encryptedEmail = EncryptionService.Encrypt(user.email);
 
             if (await db.Users.AnyAsync(u => u.name == user.name))
                 return BadRequest("Username already exists.");
@@ -72,7 +72,7 @@ public class AuthController : ControllerBase
 
         try
         {   // Encrypt
-            string encryptedEmail = EncryptionService.Encrypt(loginRequest.email);
+            string? encryptedEmail = EncryptionService.Encrypt(loginRequest.email);
 
             var user = await db.Users.FirstOrDefaultAsync(u => u.email == encryptedEmail);
             if (user == null)

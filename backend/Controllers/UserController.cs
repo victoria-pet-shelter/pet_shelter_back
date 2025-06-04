@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
+using Dtos;
 
 namespace Controllers;
 
@@ -34,7 +35,7 @@ public class UsersController : ControllerBase
 
         if (!string.IsNullOrWhiteSpace(email))
         {
-            string encryptedEmail = EncryptionService.Encrypt(email);
+            string? encryptedEmail = EncryptionService.Encrypt(email);
             query = query.Where(u => u.email == encryptedEmail);
         }
         // Sort
@@ -68,7 +69,7 @@ public class UsersController : ControllerBase
 
         if (!string.IsNullOrWhiteSpace(dto.email))
         {
-            string encryptedEmail = EncryptionService.Encrypt(dto.email);
+            string? encryptedEmail = EncryptionService.Encrypt(dto.email);
             bool emailExists = await db.Users.AnyAsync(u => u.email == encryptedEmail && u.id != id);
             if (emailExists)
                 return BadRequest("Email is already taken.");

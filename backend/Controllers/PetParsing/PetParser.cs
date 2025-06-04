@@ -29,7 +29,7 @@ public class PetParser
         _speciesDetector = speciesDetector;
     }
 
-    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 50)
+    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 0)
     {
         List<Pets> result = new();
         int page = 1;
