@@ -29,19 +29,26 @@ public class BreedResolver
         }
     }
 
-    public async Task<int> ResolveBreedIdAsync(string? breedText)
+    public async Task<int> ResolveBreedIdAsync(MultilangBreed breedData)
     {
-        if (string.IsNullOrWhiteSpace(breedText))
+        string? primaryName = breedData.en ?? breedData.lv ?? breedData.ru;
+
+        if (string.IsNullOrWhiteSpace(primaryName))
         {
             return 1;
         }
 
-        var lower = breedText.ToLowerInvariant().Trim();
+        var lower = primaryName.ToLowerInvariant().Trim();
 
-        var breed = await _db.Breeds.FirstOrDefaultAsync(b => b.name.ToLower() == lower);
-        if (breed != null)
+        var existing = await _db.Breeds.FirstOrDefaultAsync(b =>
+            b.name_en == breedData.en &&
+            b.name_lv == breedData.lv &&
+            b.name_ru == breedData.ru
+        );
+
+        if (existing != null)
         {
-            return breed.id;
+            return existing.id;
         }
 
         int speciesId = 999;
@@ -49,7 +56,10 @@ public class BreedResolver
         {
             var entry = pair.Value;
             if (entry != null && entry.breeds != null &&
-                entry.breeds.Exists(b => string.Equals(b, lower, StringComparison.OrdinalIgnoreCase)))
+                entry.breeds.Exists(b =>
+                    b.en?.ToLower() == lower ||
+                    b.lv?.ToLower() == lower ||
+                    b.ru?.ToLower() == lower))
             {
                 speciesId = entry.species_id;
                 break;
@@ -60,19 +70,22 @@ public class BreedResolver
         {
             var newBreed = new Breeds
             {
-                name = breedText.Trim(),
+                name = primaryName,
+                name_en = breedData.en,
+                name_lv = breedData.lv,
+                name_ru = breedData.ru,
                 species_id = speciesId
             };
 
             await _db.Breeds.AddAsync(newBreed);
             await _db.SaveChangesAsync();
 
-            Console.WriteLine($"✅ Created new breed: {breedText} (species_id: {speciesId})");
+            Console.WriteLine($"✅ Created new breed: {primaryName} (species_id: {speciesId})");
             return newBreed.id;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Failed to create breed '{breedText}': {ex.Message}");
+            Console.WriteLine($"❌ Failed to create breed '{primaryName}': {ex.Message}");
             return 1;
         }
     }

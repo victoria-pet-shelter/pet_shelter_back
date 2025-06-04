@@ -50,6 +50,9 @@ public class Breeds
     public int id { get; set; }
     public int species_id { get; set; } // foreign key to species
     public string? name { get; set; } // breed name
+    public string? name_en { get; set; }
+    public string? name_lv { get; set; }
+    public string? name_ru { get; set; }
 }
 
 public class Genders

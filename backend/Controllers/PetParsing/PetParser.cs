@@ -120,7 +120,15 @@ public class PetParser
                             : fullDescription ?? "No name");
 
 
-                    int breedId = await _breedResolver.ResolveBreedIdAsync(breedText);
+                    var breedObject = new MultilangBreed
+                    {
+                        en = breedText,
+                        lv = breedText,
+                        ru = breedText
+                    };
+
+                    int breedId = await _breedResolver.ResolveBreedIdAsync(breedObject);
+
                     var breed = await _db.Breeds.FindAsync(breedId);
 
                     if (breed == null)
@@ -147,7 +155,7 @@ public class PetParser
                         external_url = fullLink,
                         cena = priceText
                     });
-                    
+
                     // Console.WriteLine(petDoc.DocumentElement.OuterHtml); 
                     Console.WriteLine($"✅ Added pet: {cleanTitle}");
 

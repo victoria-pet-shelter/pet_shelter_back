@@ -84,17 +84,28 @@ public class SpeciesAutoUpdater : BackgroundService
 
                             foreach (var breed in speciesData.breeds)
                             {
-                                if (string.IsNullOrWhiteSpace(breed)) continue;
+                                if (breed == null || (string.IsNullOrWhiteSpace(breed.en) && string.IsNullOrWhiteSpace(breed.lv) && string.IsNullOrWhiteSpace(breed.ru)))
+                                    continue;
 
-                                bool breedExists = await db.Breeds.AnyAsync(b => b.name.ToLower() == breed.ToLower());
+                                string primaryName = breed.en ?? breed.lv ?? breed.ru ?? "Unknown";
+
+                                bool breedExists = await db.Breeds.AnyAsync(b =>
+                                    b.name_en == breed.en &&
+                                    b.name_lv == breed.lv &&
+                                    b.name_ru == breed.ru
+                                );
+
                                 if (!breedExists)
                                 {
                                     await db.Breeds.AddAsync(new Breeds
                                     {
-                                        name = breed,
+                                        name = primaryName,
+                                        name_en = breed.en,
+                                        name_lv = breed.lv,
+                                        name_ru = breed.ru,
                                         species_id = speciesId
                                     });
-                                    _logger.LogInformation($"✅ Inserted breed: {breed} for species {speciesName}");
+                                    _logger.LogInformation($"✅ Inserted breed: {primaryName} (en='{breed.en}', lv='{breed.lv}', ru='{breed.ru}') for species {speciesName}");
                                 }
                             }
                         }
