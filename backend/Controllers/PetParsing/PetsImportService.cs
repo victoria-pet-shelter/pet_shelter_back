@@ -32,8 +32,11 @@ public class PetImportBackgroundService : BackgroundService
                 // Parsing
                 var pets = await parser.ParseFromSsLvAsync(systemShelter.id);
 
+                // Parsing Transactrion
+                using var transaction = await db.Database.BeginTransactionAsync();
                 await db.Pets.AddRangeAsync(pets);
                 await db.SaveChangesAsync();
+                await transaction.CommitAsync();
 
                 Console.WriteLine($"✅ Imported {pets.Count} pets at {DateTime.Now}");
                 int totalPets = await db.Pets.CountAsync();
@@ -52,7 +55,10 @@ public class PetImportBackgroundService : BackgroundService
     private async Task<Users> EnsureSystemUserAsync(AppDbContext db)
     {
         var user = await db.Users.FirstOrDefaultAsync(u => u.email == "ss@parser.local");
-        if (user != null) return user;
+        if (user != null)
+        {
+            return user;
+        }
 
         var newUser = new Users
         {
@@ -62,15 +68,23 @@ public class PetImportBackgroundService : BackgroundService
             password = "",
             role = "shelter_owner"
         };
+
+        // Transaction
+        using var transaction = await db.Database.BeginTransactionAsync();
         await db.Users.AddAsync(newUser);
         await db.SaveChangesAsync();
+        await transaction.CommitAsync();
+
         return newUser;
     }
 
     private async Task<Shelters> EnsureSystemShelterAsync(AppDbContext db, Guid userId)
     {
         var shelter = await db.Shelters.FirstOrDefaultAsync(s => s.email == "ss@parser.local");
-        if (shelter != null) return shelter;
+        if (shelter != null)
+        {
+            return shelter;
+        }
 
         var newShelter = new Shelters
         {
@@ -84,8 +98,12 @@ public class PetImportBackgroundService : BackgroundService
             created_at = DateTime.UtcNow
         };
 
+        // Transaction
+        using var transaction = await db.Database.BeginTransactionAsync();
         await db.Shelters.AddAsync(newShelter);
         await db.SaveChangesAsync();
+        await transaction.CommitAsync();
+
         return newShelter;
     }
 }

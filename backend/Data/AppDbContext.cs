@@ -94,5 +94,43 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(ar => ar.pet_id)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // INDEXES
+
+        // Users
+        modelBuilder.Entity<Users>()
+            .HasIndex(u => u.email).IsUnique();
+
+        modelBuilder.Entity<Users>()
+            .HasIndex(u => u.name);
+
+        // Shelters
+        modelBuilder.Entity<Shelters>()
+            .HasIndex(s => s.email).IsUnique();
+
+        modelBuilder.Entity<Shelters>()
+            .HasIndex(s => s.shelter_owner_id);
+
+        // Pets
+        modelBuilder.Entity<Pets>()
+            .HasIndex(p => p.external_url).IsUnique();
+
+        modelBuilder.Entity<Pets>()
+            .HasIndex(p => p.shelter_id);
+
+        modelBuilder.Entity<Pets>()
+            .HasIndex(p => p.species_id);
+
+        // Favorites
+        modelBuilder.Entity<Favorites>()
+            .HasIndex(f => new { f.user_id, f.pet_id });
+
+        // Reviews
+        modelBuilder.Entity<Reviews>()
+            .HasIndex(r => new { r.user_id, r.shelter_id });
+
+        // AdoptionRequests
+        modelBuilder.Entity<AdoptionRequests>()
+            .HasIndex(ar => new { ar.user_id, ar.pet_id });
     }
 }
