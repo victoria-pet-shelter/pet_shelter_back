@@ -1,8 +1,6 @@
 backend/bin/
 backend/obj/
-backend/.env
-
-plan/Do.md
+.env
 
 .vscode/
 *.user
