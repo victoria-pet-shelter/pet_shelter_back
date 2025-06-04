@@ -14,40 +14,84 @@ using DotNetEnv;
 using Config;
 
 Console.OutputEncoding = Encoding.UTF8;
-Env.Load(Path.Combine(AppContext.BaseDirectory, ".env")); // Load .env
+var solutionRoot = Directory.GetParent(Directory.GetCurrentDirectory())!.FullName;
+Env.Load(Path.Combine(solutionRoot, ".env"));
+Console.WriteLine("✅ .env downloaded from: " + Path.Combine(solutionRoot, ".env"));
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 try
 {
-    // Check environment variables
-    var dbHost = Environment.GetEnvironmentVariable("DB_HOST") ?? "";
-    var dbName = Environment.GetEnvironmentVariable("DB_NAME") ?? "";
-    var dbUser = Environment.GetEnvironmentVariable("DB_USER") ?? "";
-    var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "";
+    // Load env vars
+    string? dbHost = Environment.GetEnvironmentVariable("DB_HOST");
+    string? dbName = Environment.GetEnvironmentVariable("DB_NAME");
+    string? dbUser = Environment.GetEnvironmentVariable("DB_USER");
+    string? dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
+    string? mongoUri = Environment.GetEnvironmentVariable("MONGO_URI");
+    string? jwtKey = Environment.GetEnvironmentVariable("JWT_KEY");
+    string? jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER");
+    string? jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE");
+    string? encryptionKey = Environment.GetEnvironmentVariable("ENCRYPTION_KEY");
 
-    if (string.IsNullOrWhiteSpace(dbHost) || string.IsNullOrWhiteSpace(dbName) || string.IsNullOrWhiteSpace(dbUser))
-        throw new Exception("One or more database environment variables are missing. \nPlease check DB_HOST, DB_NAME, DB_USER, DB_PASSWORD in your .env file.");
-
-    var connectionString = $"Host={dbHost};Database={dbName};Username={dbUser};Password={dbPassword}";
-
-    // Test database connection
-    using (var testConnection = new Npgsql.NpgsqlConnection(connectionString))
+    void Check(string? value, string name)
     {
-        testConnection.Open();
-        using var cmd = new Npgsql.NpgsqlCommand("SELECT 1", testConnection);
-        cmd.ExecuteScalar();
-        Console.WriteLine("✅ Database connection test passed.");
-        Console.WriteLine("Host connection on: http://localhost:5000");
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"❌ {name} is missing.");
+            Console.ResetColor();
+            throw new Exception($"{name} is required.");
+        }
+        else
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"✅ {name} loaded.");
+            Console.ResetColor();
+        }
     }
 
-    // Add DbContext with connection string
-    builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseNpgsql(connectionString));
+    // Validate required vars
+    Check(dbHost, "DB_HOST");
+    Check(dbName, "DB_NAME");
+    Check(dbUser, "DB_USER");
+    Check(dbPassword, "DB_PASSWORD");
+    Check(mongoUri, "MONGO_URI");
+    Check(jwtKey, "JWT_KEY");
+    Check(jwtIssuer, "JWT_ISSUER");
+    Check(jwtAudience, "JWT_AUDIENCE");
+    Check(encryptionKey, "ENCRYPTION_KEY");
+
+    // PostgreSQL test
+    var pgConn = $"Host={dbHost};Database={dbName};Username={dbUser};Password={dbPassword}";
+    using (var pg = new Npgsql.NpgsqlConnection(pgConn))
+    {
+        pg.Open();
+        using var cmd = new Npgsql.NpgsqlCommand("SELECT 1", pg);
+        cmd.ExecuteScalar();
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("✅ PostgreSQL connection OK.");
+        Console.ResetColor();
+    }
+
+    // MongoDB test
+    var mongoClient = new MongoClient(mongoUri);
+    var mongoDb = mongoClient.GetDatabase("PetShelterMedia");
+    mongoDb.RunCommandAsync((Command<MongoDB.Bson.BsonDocument>)"{ping:1}").Wait();
+    Console.ForegroundColor = ConsoleColor.Green;
+    Console.WriteLine("✅ MongoDB connection OK.");
+    Console.ResetColor();
+
+    // Register services
+    builder.Services.AddDbContext<AppDbContext>(opts => opts.UseNpgsql(pgConn));
+    builder.Services.AddSingleton<IMongoClient>(mongoClient);
+    builder.Services.AddSingleton(mongoDb);
 }
 catch (Exception ex)
 {
-    Console.WriteLine("❌ Error message: " + ex.GetBaseException().Message);
+    Console.ForegroundColor = ConsoleColor.Red;
+    Console.WriteLine("❌ Startup error: " + ex.Message);
+    Console.ResetColor();
     return;
 }
 
@@ -76,27 +120,12 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-var mongoUri = Environment.GetEnvironmentVariable("MONGO_URI") ?? throw new Exception("Missing MONGO_URI in .env");
-
-// MongoClient
-builder.Services.AddSingleton<IMongoClient>(sp =>
-    new MongoClient(mongoUri));
-
-builder.Services.AddSingleton(sp =>
-{
-    var client = sp.GetRequiredService<IMongoClient>();
-    return client.GetDatabase("PetShelterMedia");
-});
-
-
 // Controllers и Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Pet Shelter API", Version = "v1" });
-
-    // Add helping JWT autorization
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -106,19 +135,14 @@ builder.Services.AddSwaggerGen(c =>
         In = ParameterLocation.Header,
         Description = "Enter JWT token. Example: Bearer {your_token}"
     });
-
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
             },
-            new string[] {}
+            Array.Empty<string>()
         }
     });
 });
@@ -146,8 +170,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-
-// Logging closed 
+// Logging off
 builder.Logging.ClearProviders();
 
 var app = builder.Build();
@@ -158,15 +181,19 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowAll");
-
 app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseRouting();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate(); // Auto migrate
+}
 
 app.Run();

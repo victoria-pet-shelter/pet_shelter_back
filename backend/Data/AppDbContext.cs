@@ -21,6 +21,21 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+
+        modelBuilder.Entity<Users>().ToTable("Users");
+        modelBuilder.Entity<Roles>().ToTable("Roles");
+        modelBuilder.Entity<Shelters>().ToTable("Shelters");
+        modelBuilder.Entity<Species>().ToTable("Species");
+        modelBuilder.Entity<Breeds>().ToTable("Breeds");
+        modelBuilder.Entity<Genders>().ToTable("Genders");
+        modelBuilder.Entity<Pets>().ToTable("Pets");
+        modelBuilder.Entity<AdoptionStatuses>().ToTable("AdoptionStatuses");
+        modelBuilder.Entity<AdoptionRequests>().ToTable("AdoptionRequests");
+        modelBuilder.Entity<Favorites>().ToTable("Favorites");
+        modelBuilder.Entity<News>().ToTable("News");
+        modelBuilder.Entity<Reviews>().ToTable("Reviews");
+
+
         // Shelter -> User (Owner)
         modelBuilder.Entity<Shelters>()
             .HasOne(s => s.Owner)
