@@ -4,7 +4,19 @@
     "breeds": [
       "Labrador Retriever", "Лабрадор", "Labradors", "Vācu aitu suns", "German Shepherd", "Немецкая овчарка",
       "French Bulldog", "Franču buldogs", "Французский бульдог", "Шпиц", "Pūdelis", "Poodle", "Пудель",
-      "Йоркширский терьер", "Jorkšīras terjers", "Yorkshire Terrier", "Miniatūrais šnaucers"
+      "Йоркширский терьер", "Jorkšīras terjers", "Yorkshire Terrier",
+      "Miniatūrais šnaucers", "Miniature Schnauzer", "Миниатюрный шнауцер",
+      "Amerikāņu kokerspaniels", "American Cocker Spaniel", "Американский кокер-спаниель",
+      "Bišons frise", "Bichon Frise", "Бишон фризе", "Beagle", "Бигль", "Beagls",
+      "Afenpinčers", "Affenpinscher", "Аффенпинчер", "Doberman", "Dobermans", "Доберман",
+      "Austrālijas aitu suns", "Australian Shepherd", "Австралийская овчарка",
+      "Berns aitu suns", "Bernese Mountain Dog", "Бернский зенненхунд",
+      "Taizemes ridžbeks", "Thai Ridgeback", "Тайский риджбек", "Korgijs", "Corgi", "Корги",
+      "Šarpejs", "Shar Pei", "Шарпей", "Maltiešu sunītis", "Maltese", "Мальтийская болонка",
+      "Amerikāņu bullis", "Amerikāņu bulldogs", "American Bulldog", "Американский бульдог", "Mopsis", "Pug", "Мопс",
+      "Austrālijas ganu suns", "Australian Cattle Dog", "Австралийская пастушья собака",
+      "Punduršpics", "Pomeranian", "Померанский шпиц", "Rottweiler", "Ротвейлер", "Rottveilers",
+      "Terjers", "Terrier", "Терьер"
     ]
   },
   "cats": {
