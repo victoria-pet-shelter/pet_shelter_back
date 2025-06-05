@@ -35,6 +35,20 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<News>().ToTable("News");
         modelBuilder.Entity<Reviews>().ToTable("Reviews");
 
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Species>().HasData(
+            new Species { id = 1, name = "dog" },
+            new Species { id = 2, name = "cat" },
+            new Species { id = 3, name = "rabbit" },
+            new Species { id = 4, name = "bird" },
+            new Species { id = 5, name = "rodent" },
+            new Species { id = 6, name = "reptile" },
+            new Species { id = 7, name = "horse" },
+            new Species { id = 8, name = "fish" },
+            new Species { id = 9, name = "exotic" }
+            // new Species { id = 999, name = "Unknown" }
+        );
 
         // Shelter -> User (Owner)
         modelBuilder.Entity<Shelters>()

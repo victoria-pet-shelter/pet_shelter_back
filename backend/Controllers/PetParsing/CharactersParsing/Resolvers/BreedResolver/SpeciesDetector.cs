@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 public class SpeciesDetector
 {
@@ -49,7 +50,13 @@ public class SpeciesDetector
             }
         }
 
-        // 3. Log and return 999 for unknown
+        // 3. Fallback to "exotic" check
+        if (Regex.IsMatch(lowerBreed, @"\b(игуана|хамелеон|геккон|питон|попугай ара|паук|уж|змея|обезьяна|лемур)\b", RegexOptions.IgnoreCase))
+        {
+            return 9; // exotic
+        }
+
+        // 4. Log and return 999 for unknown
         LogUnknownBreed(trimmedBreed);
         return 999;
     }

@@ -41,7 +41,7 @@ public class UserRegisterValidator : IValidator<UserRegisterDto>
                 errors["name"] = "Username must contain only letters and numbers.";
         }
 
-        if (string.IsNullOrEmpty(user.role) || (user.role != "user" && user.role != "shelter_owner"))
+        if (string.IsNullOrEmpty(user.role) || (user.role != "user" && user.role != "shelter_owner" && user.role != "admin"))
             errors["role"] = "Role must be either 'user' or 'shelter_owner'.";
 
         return errors;

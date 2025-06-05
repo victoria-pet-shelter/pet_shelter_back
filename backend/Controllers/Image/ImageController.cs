@@ -9,6 +9,7 @@ namespace Controllers
 {
     [ApiController]
     [Route("image")]
+
     public class ImageController : ControllerBase
     {
         private readonly GridFSBucket _bucket;

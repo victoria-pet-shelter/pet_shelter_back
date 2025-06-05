@@ -12,12 +12,16 @@ using ImageFetchers;
 using System.Text;
 using DotNetEnv;
 using Config;
+using Models;
 
 Console.OutputEncoding = Encoding.UTF8;
+// For Self:
 var solutionRoot = Directory.GetParent(Directory.GetCurrentDirectory())!.FullName;
 Env.Load(Path.Combine(solutionRoot, ".env"));
 Console.WriteLine("✅ .env downloaded from: " + Path.Combine(solutionRoot, ".env"));
 
+// For Docker:
+Env.Load(".env");
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -86,6 +90,7 @@ try
     builder.Services.AddDbContext<AppDbContext>(opts => opts.UseNpgsql(pgConn));
     builder.Services.AddSingleton<IMongoClient>(mongoClient);
     builder.Services.AddSingleton(mongoDb);
+    Console.WriteLine("✅ Usage:http://localhost:5000 and http://localhost:5000/swagger/");
 }
 catch (Exception ex)
 {
@@ -151,6 +156,7 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddHostedService<PetImportBackgroundService>();
 builder.Services.AddScoped<PetParser>();
 builder.Services.AddScoped<BreedResolver>();
+builder.Services.AddScoped<GenderResolver>();
 builder.Services.AddSingleton<MongoService>();
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<IServiceScopeFactory>(sp => sp.GetRequiredService<IServiceScopeFactory>());
@@ -190,10 +196,12 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Auto migrate and seed species
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate(); // Auto migrate
+    db.Database.Migrate();
+    await DbInitializer.EnsureDbIsInitializedAsync(db);
 }
 
 app.Run();

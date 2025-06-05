@@ -1,23 +1,55 @@
 using System;
+using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Models;
 
-public static class GenderResolver
+public class GenderResolver
 {
-    public static int? ResolveGender(string? description, string? title = null)
+    private readonly AppDbContext _db;
+
+    public GenderResolver(AppDbContext db)
+    {
+        _db = db;
+    }
+
+    public async Task<int?> ResolveGenderAsync(string? description, string? title = null)
     {
         string combined = ((description ?? "") + " " + (title ?? "")).ToLower();
 
         if (string.IsNullOrWhiteSpace(combined))
-        {
             return null;
-        }
 
         if (Regex.IsMatch(combined, @"\b(девочка|meitene|female|сука|girl|женский|she)\b"))
-            return 2;
+            return await EnsureGenderExistsAsync("female");
 
         if (Regex.IsMatch(combined, @"\b(мальчик|puika|male|кобель|boy|мужской|he)\b"))
-            return 1;
+            return await EnsureGenderExistsAsync("male");
 
         return null;
+    }
+
+    private async Task<int> EnsureGenderExistsAsync(string name)
+    {
+        var existing = await _db.Genders.FirstOrDefaultAsync(g => g.name == name);
+        if (existing != null)
+            return existing.id;
+
+        try
+        {
+            var gender = new Genders { name = name };
+            _db.Genders.Add(gender);
+            await _db.SaveChangesAsync();
+            return gender.id;
+        }
+        catch (DbUpdateException)
+        {
+            var existingRetry = await _db.Genders.FirstOrDefaultAsync(g => g.name == name);
+            if (existingRetry != null)
+                return existingRetry.id;
+
+            throw;
+        }
     }
 }

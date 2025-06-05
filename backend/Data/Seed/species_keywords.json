@@ -1,10 +1,11 @@
 {
-  "1": ["dog", "puppy", "hound", "terrier", "овчарка", "собака", "щенок", "buldogs", "собак", "терьер", "терьеры", "сука", "кобель", "kuce", "suns", "kucēns", "kucēni", "kucīti", "terjers"],
-  "2": ["cat", "kitten", "кошка", "кот", "котёнок", "kaķis", "kaķene", "kaķēns", "persietis", "siāmas", "британка", "брит", "британская", "британец"],
-  "3": ["rabbit", "bunny", "кролик", "крольчиха", "trusis", "trusene", "austiņtrusis", "pundurtrusis"],
-  "4": ["bird", "parrot", "попугай", "птица", "papagailis", "putns", "kanārijputns", "канарейка"],
-  "5": ["hamster", "gerbil", "песчанка", "хомяк", "крыса", "мышь", "морская свинка", "jūrascūciņa", "kāmītis", "pele"],
-  "6": ["reptile", "snake", "lizard", "питон", "змея", "игуана", "варан", "čūska", "rāpuļi", "iguāna", "ķirzaka"],
-  "7": ["horse", "pony", "жеребец", "лошадь", "zirgs", "kumeļš", "zirgi", "ķēve", "zirgspēks"],
-  "8": ["fish", "aquarium", "рыбка", "рыба", "akvārijs", "zivs", "zivtiņa", "аквариум"]
+  "1": ["dog", "puppy", "hound", "terrier", "bulldog", "buldogs", "овчарка", "собака", "щенок", "щенки", "собачка", "пёс", "песик", "терьер", "терьеры", "сука", "кобель", "kuce", "suns", "sunītis", "kucēns", "kucēni", "kucīti", "terjers"],
+  "2": ["cat", "kitten", "kitty", "кошка", "кот", "котёнок", "котик", "кошечка", "мурка", "kaķis", "kaķene", "kaķēns", "kaķītis", "kaķi", "persietis", "siāmas", "британка", "брит", "британская", "британец"],
+  "3": ["rabbit", "bunny", "hare", "кролик", "крольчиха", "крольчонок", "зайка", "зайчик", "trusis", "trusene", "trusēns", "austiņtrusis", "pundurtrusis", "trušelis"],
+  "4": ["bird", "parrot", "canary", "dove", "budgie", "попугай", "попугайчик", "волнистый", "птица", "канарейка", "голубь", "пернатый", "papagailis", "putns", "kanārijputns", "ūbele", "papagaiļi", "putniņš"],
+  "5": ["hamster", "gerbil", "rat", "mouse", "guinea pig", "mice", "песчанка", "хомяк", "хомячок", "крыса", "мышь", "мышка", "морская свинка", "шиншилла", "jūrascūciņa", "kāmītis", "pele", "žurka", "degu", "čīles vāvere", "čīles žurka", "čīnša"],
+  "6": ["reptile", "snake", "lizard", "iguana", "monitor", "python", "boa", "chameleon", "gecko", "питон", "змея", "игуана", "варан", "хамелеон", "геккон", "рептилия", "čūska", "rāpuļi", "iguāna", "ķirzaka", "gekons"],
+  "7": ["horse", "pony", "stallion", "mare", "foal", "жеребец", "лошадь", "пони", "кобыла", "конь", "коняшка", "жеребёнок", "zirgs", "zirgi", "kumeļš", "ķēve", "kumeļi", "ērzelis"],
+  "8": ["fish", "aquarium", "guppy", "tetra", "betta", "goldfish", "catfish", "рыбка", "рыба", "аквариум", "сомик", "гуппи", "тетра", "петушок", "меченосец", "расбора", "akvārijs", "zivs", "zivtiņa", "zivis", "akvārija zivis"],
+  "9": ["sheep", "goat", "cow", "bull", "pig", "donkey", "horse", "agricultural", "farm", "овца", "коза", "корова", "бык", "свинья", "осёл", "лошадь", "ферма", "aita", "kaza", "govs", "bullis", "cūka", "ēzelis", "zirgs", "lauksaimniecība"]
 }

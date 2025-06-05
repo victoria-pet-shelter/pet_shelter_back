@@ -11,6 +11,7 @@ public class Users
     public string? role { get; set; }  // "admin"/"user"/"shelter"
     public string? phone { get; set; }
     public string? address { get; set; }
+    public string? email_hash { get; set; }
 
     // One user can own multiple shelters
     [JsonIgnore]

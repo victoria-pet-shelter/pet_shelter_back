@@ -33,6 +33,7 @@ public class AuthController : ControllerBase
         try
         { // Encrypt
             string? encryptedEmail = EncryptionService.Encrypt(user.email);
+            var emailHash = EncryptionService.Hash(user.email);
 
             if (await db.Users.AnyAsync(u => u.name == user.name))
                 return BadRequest("Username already exists.");
@@ -44,7 +45,8 @@ public class AuthController : ControllerBase
             {
                 id = Guid.NewGuid(),
                 name = user.name,
-                email = encryptedEmail,// Encrypt
+                email = encryptedEmail, // Encrypt
+                email_hash = emailHash,
                 password = BCrypt.Net.BCrypt.HashPassword(user.password), // Encrypt
                 role = user.role
             };
@@ -71,31 +73,46 @@ public class AuthController : ControllerBase
             return BadRequest(new { errors });
 
         try
-        {   // Encrypt
-            string? encryptedEmail = EncryptionService.Encrypt(loginRequest.email);
+        {
+            var emailHash = EncryptionService.Hash(loginRequest.email);
+            var user = await db.Users.FirstOrDefaultAsync(u => u.email_hash == emailHash);
+            if (string.IsNullOrWhiteSpace(user.email))
+                return BadRequest("Email is required.");
 
-            var user = await db.Users.FirstOrDefaultAsync(u => u.email == encryptedEmail);
+            Console.WriteLine($"🔐 Email hash: {emailHash}");
+
             if (user == null)
+            {
+                Console.WriteLine("❌ User not found.");
                 return Unauthorized("Incorrect email or password.");
+            }
 
             bool isPasswordCorrect = BCrypt.Net.BCrypt.Verify(loginRequest.password, user.password);
-            if (!isPasswordCorrect)
-                return Unauthorized("Incorrect email or password.");
 
-            string token = _jwtService.GenerateToken(user.id, user.role ?? "user");
+            if (!isPasswordCorrect)
+            {
+                Console.WriteLine("❌ Incorrect password.");
+                return Unauthorized("Incorrect email or password.");
+            }
+
+            string role = user.role ?? "user";
+            string token = _jwtService.GenerateToken(user.id, role);
+
+            Console.WriteLine($"✅ Login success: {user.name}, Role: {role}");
 
             return Ok(new
             {
                 token,
                 id = user.id,
                 name = user.name,
-                email = EncryptionService.Decrypt(user.email),// Encrypt
-                phone = user.phone != null ? EncryptionService.Decrypt(user.phone) : null, // Encrypt
+                email = EncryptionService.Decrypt(user.email),
+                phone = user.phone != null ? EncryptionService.Decrypt(user.phone) : null,
                 role = user.role
             });
         }
         catch (Exception ex)
         {
+            Console.WriteLine("❌ Login error: " + ex);
             return Problem("Error: " + ex.Message);
         }
     }
