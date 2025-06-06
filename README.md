@@ -87,9 +87,13 @@ Development tasks are tracked using GitHub Projects:
 
 ---
 
-```bash
+## 🔵Docker
+
+```docker
 docker pull alaner/pet_shelter_backend:latest
 ```
+
+---
 
 ## 🧠 Contributors
 
