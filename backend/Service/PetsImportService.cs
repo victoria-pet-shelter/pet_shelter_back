@@ -123,7 +123,8 @@ public class PetImportBackgroundService : BackgroundService
             description = "Dates from website",
             created_at = DateTime.UtcNow
         };
-
+        
+        // Transaction
         using var transaction = await db.Database.BeginTransactionAsync();
         await db.Shelters.AddAsync(newShelter);
         await db.SaveChangesAsync();
