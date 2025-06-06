@@ -41,7 +41,7 @@ public class PetParser
         _linkPath = Path.Combine(AppContext.BaseDirectory, "Data", "Seed", "SsLvLinks.json");
     }
 
-    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 5)
+    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 100)
     {
         var result = new List<Pets>();
         var client = _httpClientFactory.CreateClient();
@@ -55,34 +55,64 @@ public class PetParser
             int page = 1;
             int collected = 0;
 
-            while (collected < max)
+            while (true)
             {
                 string url = baseUrl + (page > 1 ? $"page{page}.html" : "index.html");
                 Console.WriteLine($"🔗 Parsing: {url}");
 
                 var document = await TryLoadPageAsync(client, context, url);
-                if (document == null) break;
-
+                if (document == null)
+                {
+                    break;
+                }
                 var ads = document.QuerySelectorAll(".d1").Where(e => e.QuerySelector("a") != null);
-                if (!ads.Any()) break;
+                if (!ads.Any())
+                {
+                    break;
+                }
+                bool anyAdded = false;
 
                 foreach (var ad in ads)
                 {
-                    if (collected >= max) break;
-
                     string? fullLink = GetAdLink(ad);
-                    if (string.IsNullOrWhiteSpace(fullLink) || await _db.Pets.AnyAsync(p => p.external_url == fullLink))
+                    if (string.IsNullOrWhiteSpace(fullLink))
+                    {
                         continue;
+                    }
 
+                    bool alreadyInDb = await _db.Pets.AnyAsync(p => p.external_url == fullLink);
+                    if (alreadyInDb)
+                    {
+                        continue;
+                    }
+                    
+                    if (result.Any(p => p.external_url == fullLink))
+                    {
+                        continue;
+                    }
                     var pet = await ParseAdAsync(fullLink, context, client, shelterId, baseUrl);
                     if (pet != null)
                     {
                         result.Add(pet);
                         collected++;
+                        anyAdded = true;
                         Console.WriteLine($"✅ Added: {pet.name}");
+                    }
+
+                    if (collected >= max)
+                    {
+                        break;
                     }
                 }
 
+                if (collected >= max)
+                {
+                    break;
+                }
+                if (!anyAdded)
+                {
+                    break;
+                }
                 page++;
             }
         }
@@ -90,6 +120,7 @@ public class PetParser
         Console.WriteLine($"📊 Total pets parsed: {result.Count}");
         return result;
     }
+
 
     private async Task<List<string>> LoadUrlsAsync()
     {

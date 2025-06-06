@@ -33,8 +33,19 @@ public class PetImportBackgroundService : BackgroundService
 
                 // Filter out duplicates before saving
                 List<Pets> newPets = new();
+                HashSet<string> urlsInBatch = new();
+                
                 foreach (var pet in parsedPets)
                 {
+                    if (string.IsNullOrWhiteSpace(pet.external_url))
+                    {
+                        continue;
+                    }
+                    if (urlsInBatch.Contains(pet.external_url))
+                    {
+                        continue;
+                    }
+
                     bool exists = await db.Pets.AnyAsync(x => x.external_url == pet.external_url);
                     if (!exists)
                         newPets.Add(pet);
