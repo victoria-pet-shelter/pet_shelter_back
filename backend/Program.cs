@@ -92,6 +92,7 @@ try
     builder.Services.AddSingleton(mongoDb);
     Console.WriteLine("✅ Usage:http://localhost:5000 and http://localhost:5000/swagger/");
 }
+
 catch (Exception ex)
 {
     Console.ForegroundColor = ConsoleColor.Red;
@@ -162,6 +163,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddSingleton<IServiceScopeFactory>(sp => sp.GetRequiredService<IServiceScopeFactory>());
 builder.Services.AddTransient<ImageFetcher>();
 
+// Configure Paths
 string breedsPath = Path.Combine(AppContext.BaseDirectory, "Data", "Seed", "species_breeds.json");
 string keywordsPath = Path.Combine(AppContext.BaseDirectory, "Data", "Seed", "species_keywords.json");
 string logPath = Path.Combine(AppContext.BaseDirectory, "Logs", "unknown_breeds.log");

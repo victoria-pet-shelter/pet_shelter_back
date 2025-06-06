@@ -3,3 +3,4 @@ obj/
 .env
 *.md
 *.db
+backend/Logs

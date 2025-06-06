@@ -1,5 +1,6 @@
 backend/bin/
 backend/obj/
+backend/Logs
 .env
 
 .vscode/

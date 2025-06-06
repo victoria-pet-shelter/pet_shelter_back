@@ -38,6 +38,7 @@ ENCRYPTION_KEY=your_key_in_32_symbols
 ```
 
 > Replace `your_postgres_password`, `your_jwt_secret_key` and `your_key_in_32_symbols` with your real values.
+> And if you want work with docker make `DB_HOST=postgres` and `MONGO_URI=mongodb://mongo:27017`.
 
 ---
 
