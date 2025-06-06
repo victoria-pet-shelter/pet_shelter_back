@@ -41,66 +41,129 @@ public class PetParser
         _linkPath = Path.Combine(AppContext.BaseDirectory, "Data", "Seed", "SsLvLinks.json");
     }
 
-    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 100)
+    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 10)
     {
         var result = new List<Pets>();
         var client = _httpClientFactory.CreateClient();
         var context = BrowsingContext.New(Configuration.Default.WithDefaultLoader());
 
+        var stats = new Dictionary<string, (int added, int skipped)>();
+        string logPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Logs", $"parse_{DateTime.Now:yyyyMMdd_HHmmss}.log");
+        logPath = Path.GetFullPath(logPath);
+        Directory.CreateDirectory(Path.GetDirectoryName(logPath)!);
+        using var logWriter = new StreamWriter(logPath);
+
         List<string> urls = await LoadUrlsAsync();
-        if (urls.Count == 0) return result;
+        if (urls.Count == 0)
+        {
+            return result;
+        }
 
         foreach (var baseUrl in urls)
         {
             int page = 1;
             int collected = 0;
+            int added = 0;
+            int skipped = 0;
+
+            Uri uri = new Uri(baseUrl);
+            string categoryPath = uri.AbsolutePath
+                .Replace("/ru/animals/", "")
+                .Replace("/lv/animals/", "")
+                .Replace("/ru/agriculture/animal-husbandry/agricultural-animals/", "")
+                .Trim('/')
+                .Replace("/sell", "")
+                .ToLowerInvariant();
+
+            string firstPageUrl = baseUrl + "index.html";
+            var firstPageDoc = await TryLoadPageAsync(client, context, firstPageUrl);
+            string? firstPageHtml = firstPageDoc?.DocumentElement?.OuterHtml;
 
             while (true)
             {
                 string url = baseUrl + (page > 1 ? $"page{page}.html" : "index.html");
                 Console.WriteLine($"🔗 Parsing: {url}");
+                await logWriter.WriteLineAsync($"🔗 Parsing: {url}");
 
                 var document = await TryLoadPageAsync(client, context, url);
                 if (document == null)
                 {
+                    Console.WriteLine("⚠️ Failed to load page — stopping category.");
+                    await logWriter.WriteLineAsync("⚠️ Failed to load page — stopping category.");
                     break;
                 }
-                var ads = document.QuerySelectorAll(".d1").Where(e => e.QuerySelector("a") != null);
-                if (!ads.Any())
+
+                var canonicalHref = document.QuerySelector("link[rel='canonical']")?.GetAttribute("href");
+                var canonicalUrl = canonicalHref?.TrimEnd('/');
+                var expectedFirstPage = baseUrl.TrimEnd('/') + "/index.html";
+
+                await logWriter.WriteLineAsync($"🔎 Canonical: {canonicalUrl} | Expected: {expectedFirstPage}");
+
+                if (canonicalUrl != null &&
+                    page > 1 &&
+                    (canonicalUrl == baseUrl.TrimEnd('/') || canonicalUrl == expectedFirstPage))
                 {
+                    Console.WriteLine("🔁 Redirected to first page — stopping this category.");
+                    await logWriter.WriteLineAsync("🔁 Redirected to first page — stopping this category.");
                     break;
                 }
-                bool anyAdded = false;
+
+                string? currentPageHtml = document.DocumentElement?.OuterHtml;
+
+                if (!string.IsNullOrEmpty(firstPageHtml) &&
+                    !string.IsNullOrEmpty(currentPageHtml) &&
+                    page > 1 &&
+                    currentPageHtml == firstPageHtml)
+                {
+                    Console.WriteLine("🔁 Page identical to first — stopping category.");
+                    await logWriter.WriteLineAsync("🔁 Page identical to first — stopping category.");
+                    break;
+                }
+
+                var ads = document.QuerySelectorAll(".d1")
+                                 .Where(e => e.QuerySelector("a") != null &&
+                                             e.QuerySelector("a")!.GetAttribute("href")?.Contains("/msg/") == true).ToList();
+
+                if (ads.Count == 0)
+                {
+                    Console.WriteLine("🚫 No ads found — stopping this category.");
+                    await logWriter.WriteLineAsync("🚫 No ads found — stopping this category.");
+                    break;
+                }
 
                 foreach (var ad in ads)
                 {
                     string? fullLink = GetAdLink(ad);
                     if (string.IsNullOrWhiteSpace(fullLink))
                     {
+                        skipped++;
                         continue;
                     }
 
-                    bool alreadyInDb = await _db.Pets.AnyAsync(p => p.external_url == fullLink);
-                    if (alreadyInDb)
+                    if (await _db.Pets.AnyAsync(p => p.external_url == fullLink) || result.Any(p => p.external_url == fullLink))
                     {
+                        skipped++;
                         continue;
                     }
-                    
-                    if (result.Any(p => p.external_url == fullLink))
-                    {
-                        continue;
-                    }
+
                     var pet = await ParseAdAsync(fullLink, context, client, shelterId, baseUrl);
                     if (pet != null)
                     {
                         result.Add(pet);
                         collected++;
-                        anyAdded = true;
+                        added++;
                         Console.WriteLine($"✅ Added: {pet.name}");
+                        await logWriter.WriteLineAsync($"✅ Added: {pet.name}");
+                    }
+                    else
+                    {
+                        skipped++;
                     }
 
                     if (collected >= max)
                     {
+                        Console.WriteLine("📦 Reached max — moving to next category.");
+                        await logWriter.WriteLineAsync("📦 Reached max — moving to next category.");
                         break;
                     }
                 }
@@ -109,17 +172,28 @@ public class PetParser
                 {
                     break;
                 }
-                if (!anyAdded)
-                {
-                    break;
-                }
+
                 page++;
             }
+
+            stats[categoryPath] = (added, skipped);
+            await logWriter.WriteLineAsync($"📁 {categoryPath}: ✅ {added}, ❌ {skipped}");
+            await logWriter.FlushAsync();
         }
 
+        await logWriter.WriteLineAsync("\n📊 Summary:");
+        foreach (var kvp in stats)
+        {
+            await logWriter.WriteLineAsync($"📁 {kvp.Key}: ✅ {kvp.Value.added} / ❌ {kvp.Value.skipped}");
+        }
+
+        await logWriter.FlushAsync();
         Console.WriteLine($"📊 Total pets parsed: {result.Count}");
+        Console.WriteLine($"📂 Log saved: {logPath}");
+
         return result;
     }
+
 
 
     private async Task<List<string>> LoadUrlsAsync()
