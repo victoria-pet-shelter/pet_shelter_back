@@ -53,7 +53,7 @@ public class PetImportBackgroundService : BackgroundService
 
                 using var transaction = await db.Database.BeginTransactionAsync();
                 await db.Pets.AddRangeAsync(newPets);
-                await db.SaveChangesAsync(); // problem
+                await db.SaveChangesAsync();
                 await transaction.CommitAsync();
 
                 Console.WriteLine($"✅ Imported {newPets.Count} new pets at {DateTime.Now}");
