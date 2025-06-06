@@ -26,6 +26,8 @@ services:
       - mongodata:/data/db
 
   backend:
+    container_name: backend
+    image: backend:latest
     build:
       context: ./backend
     depends_on:
