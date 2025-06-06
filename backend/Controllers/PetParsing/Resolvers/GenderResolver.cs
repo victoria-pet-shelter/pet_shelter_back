@@ -1,9 +1,9 @@
-using System;
-using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using Models;
+using System;
 
 public class GenderResolver
 {

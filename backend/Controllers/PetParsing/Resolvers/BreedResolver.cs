@@ -1,8 +1,8 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
+using System.Linq;
 using Models;
+using System;
 
 public class BreedResolver
 {

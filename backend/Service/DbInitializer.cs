@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.IO;
 using Models;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
 
 public static class DbInitializer
 {

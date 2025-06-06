@@ -1,15 +1,15 @@
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text.Json;
 using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Text.Json;
+using System.Net.Http;
+using ImageFetchers;
+using MongoDB.Bson;
+using System.Linq;
 using AngleSharp;
 using Models;
-using MongoDB.Bson;
-using ImageFetchers;
+using System;
 
 public class PetParser
 {

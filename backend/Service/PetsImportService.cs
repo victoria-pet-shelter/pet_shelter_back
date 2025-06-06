@@ -1,11 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading;
 using Models;
 using System;
-using System.Collections.Generic;
 
 public class PetImportBackgroundService : BackgroundService
 {

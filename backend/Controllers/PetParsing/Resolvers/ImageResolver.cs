@@ -1,8 +1,8 @@
-using System;
-using System.Net.Http;
 using System.Threading.Tasks;
+using System.Net.Http;
 using AngleSharp.Dom;
 using MongoDB.Bson;
+using System;
 
 namespace ImageFetchers
 {
