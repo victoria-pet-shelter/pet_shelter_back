@@ -41,7 +41,7 @@ public class PetParser
         _linkPath = Path.Combine(AppContext.BaseDirectory, "Data", "Seed", "SsLvLinks.json");
     }
 
-    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 1)
+    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 10)
     {
         var result = new List<Pets>();
         var client = _httpClientFactory.CreateClient();
