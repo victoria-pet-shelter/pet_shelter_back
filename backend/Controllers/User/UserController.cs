@@ -38,6 +38,7 @@ public class UsersController : ControllerBase
             string? encryptedEmail = EncryptionService.Encrypt(email);
             query = query.Where(u => u.email == encryptedEmail);
         }
+
         // Sort
         query = sort switch
         {
@@ -86,6 +87,7 @@ public class UsersController : ControllerBase
         if (!string.IsNullOrWhiteSpace(dto.role))
             user.role = dto.role;
 
+        // Transaction
         using var transaction = await db.Database.BeginTransactionAsync();
         await db.SaveChangesAsync();
         await transaction.CommitAsync();
@@ -115,7 +117,8 @@ public class UsersController : ControllerBase
         var user = await db.Users.FindAsync(id);
         if (user == null)
             return NotFound("User not found.");
-
+            
+        // Transaction
         using var transaction = await db.Database.BeginTransactionAsync();
         db.Users.Remove(user);
         await db.SaveChangesAsync();

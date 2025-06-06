@@ -9,6 +9,7 @@ using System;
 
 public class PetImportBackgroundService : BackgroundService
 {
+    // Used to create scoped services inside the background worker
     private readonly IServiceScopeFactory _scopeFactory;
 
     public PetImportBackgroundService(IServiceScopeFactory scopeFactory)
@@ -20,7 +21,10 @@ public class PetImportBackgroundService : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
+            // Create a new DI scope for this iteration
             using var scope = _scopeFactory.CreateScope();
+
+            // Resolve required services
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var parser = scope.ServiceProvider.GetRequiredService<PetParser>();
 
@@ -48,9 +52,9 @@ public class PetImportBackgroundService : BackgroundService
 
                     bool exists = await db.Pets.AnyAsync(x => x.external_url == pet.external_url);
                     if (!exists)
-                        newPets.Add(pet);
+                        newPets.Add(pet); // Add only if not already in DB
                 }
-
+                // Save new pets in transaction
                 using var transaction = await db.Database.BeginTransactionAsync();
                 await db.Pets.AddRangeAsync(newPets);
                 await db.SaveChangesAsync();
@@ -58,8 +62,9 @@ public class PetImportBackgroundService : BackgroundService
 
                 Console.WriteLine($"✅ Imported {newPets.Count} new pets at {DateTime.Now}");
                 int totalPets = await db.Pets.CountAsync();
-                Console.WriteLine($"📊 Total pets in database: {totalPets}");
+                Console.WriteLine($"📊 Total pets in database: {totalPets}\n");
 
+                // Optional short pause between imports
                 await Task.Delay(1000);
             }
             catch (Exception ex)
@@ -67,15 +72,17 @@ public class PetImportBackgroundService : BackgroundService
                 Console.WriteLine($"❌ Error during import: {ex}");
             }
 
-            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+            // Wait before next run (default 60 minutes)
+            await Task.Delay(TimeSpan.FromMinutes(60), stoppingToken);
         }
     }
 
     private async Task<Users> EnsureSystemUserAsync(AppDbContext db)
     {
         string? encryptedEmail = EncryptionService.Encrypt("ss@parser.local");
+        
+        // Check if user already exists
         var user = await db.Users.FirstOrDefaultAsync(u => u.email == encryptedEmail);
-
         if (user != null)
             return user;
 
@@ -96,6 +103,7 @@ public class PetImportBackgroundService : BackgroundService
         return newUser;
     }
 
+    // Ensure system shelter is linked to system user
     private async Task<Shelters> EnsureSystemShelterAsync(AppDbContext db, Guid userId)
     {
         string? encryptedEmail = EncryptionService.Encrypt("ss@parser.local");
@@ -110,7 +118,7 @@ public class PetImportBackgroundService : BackgroundService
             shelter_owner_id = userId,
             name = "Imported from ss.lv",
             email = encryptedEmail,
-            address = "internet",
+            address = "internet", // Placeholder
             phone = "0000",
             description = "Dates from website",
             created_at = DateTime.UtcNow

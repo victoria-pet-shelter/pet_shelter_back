@@ -13,6 +13,7 @@ using System;
 
 public class PetParser
 {
+    // Dependencies and services
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly MongoService _mongoService;
     private readonly AppDbContext _db;
@@ -22,6 +23,7 @@ public class PetParser
     private readonly SpeciesDetector _speciesDetector;
     private readonly string _linkPath;
 
+    // Constructor injecting required services
     public PetParser(
         IHttpClientFactory httpClientFactory,
         MongoService mongoService,
@@ -41,28 +43,31 @@ public class PetParser
         _linkPath = Path.Combine(AppContext.BaseDirectory, "Data", "Seed", "SsLvLinks.json");
     }
 
-    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 10)
+    // Main parsing function
+    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 50)
     {
         var result = new List<Pets>();
         var client = _httpClientFactory.CreateClient();
-        var context = BrowsingContext.New(Configuration.Default.WithDefaultLoader());
+        var context = BrowsingContext.New(Configuration.Default.WithDefaultLoader()); // Setup AngleSharp browsing context
 
-        var stats = new Dictionary<string, (int added, int skipped)>();
+        var stats = new Dictionary<string, (int added, int skipped)>(); // Track stats per category
         string logPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Logs", $"parse_{DateTime.Now:yyyyMMdd_HHmmss}.log"));
         Directory.CreateDirectory(Path.GetDirectoryName(logPath)!);
-        using var logWriter = new StreamWriter(logPath);
+        using var logWriter = new StreamWriter(logPath); // Log writer
 
-        List<string> urls = await LoadUrlsAsync();
+        List<string> urls = await LoadUrlsAsync(); // Load category URLs from JSON file
+
         if (urls.Count == 0)
-            return result;
+            return result; // No URLs = no parsing
 
-        foreach (var baseUrl in urls)
+        foreach (var baseUrl in urls) // Loop through each category URL
         {
-            int page = 1;
-            int collected = 0;
+            int page = 1; 
+            int collected = 0; // Count collected items
             int added = 0;
             int skipped = 0;
 
+            // Extract category name from URL path
             Uri uri = new Uri(baseUrl);
             string categoryPath = uri.AbsolutePath
                 .Replace("/ru/animals/", "")
@@ -72,11 +77,12 @@ public class PetParser
                 .Replace("/sell", "")
                 .ToLowerInvariant();
 
+            // Load first page for comparison
             string firstPageUrl = baseUrl + "index.html";
             var firstPageDoc = await TryLoadPageAsync(client, context, firstPageUrl);
             string? firstPageHtml = firstPageDoc?.DocumentElement?.OuterHtml;
 
-            while (true)
+            while (true) // Loop through paginated pages
             {
                 string url = baseUrl + (page > 1 ? $"page{page}.html" : "index.html");
                 Console.WriteLine($"🔗 Parsing: {url}");
@@ -92,6 +98,7 @@ public class PetParser
 
                 string? currentPageHtml = document.DocumentElement?.OuterHtml;
 
+                // Stop if duplicate page
                 if (!string.IsNullOrEmpty(firstPageHtml) &&
                     !string.IsNullOrEmpty(currentPageHtml) &&
                     page > 1 &&
@@ -102,6 +109,7 @@ public class PetParser
                     break;
                 }
 
+                // Select ad blocks
                 var ads = document.QuerySelectorAll(".d1")
                     .Where(e => e.QuerySelector("a")?.GetAttribute("href")?.Contains("/msg/") == true)
                     .ToList();
@@ -113,18 +121,19 @@ public class PetParser
                     break;
                 }
 
+                // Process each ad
                 foreach (var ad in ads)
                 {
-                    string? fullLink = GetAdLink(ad);
+                    string? fullLink = GetAdLink(ad); // Get full URL to ad
                     if (string.IsNullOrWhiteSpace(fullLink) ||
                         await _db.Pets.AnyAsync(p => p.external_url == fullLink) ||
-                        result.Any(p => p.external_url == fullLink))
+                        result.Any(p => p.external_url == fullLink)) // Skip duplicates
                     {
                         skipped++;
                         continue;
                     }
 
-                    var pet = await ParseAdAsync(fullLink, context, client, shelterId, baseUrl);
+                    var pet = await ParseAdAsync(fullLink, context, client, shelterId, baseUrl); // Parse single ad
                     if (pet != null)
                     {
                         result.Add(pet);
@@ -138,7 +147,7 @@ public class PetParser
                         skipped++;
                     }
 
-                    if (collected >= max)
+                    if (collected >= max) // Stop if reached limit
                     {
                         Console.WriteLine("📦 Reached max — moving to next category.");
                         await logWriter.WriteLineAsync("📦 Reached max — moving to next category.");
@@ -152,10 +161,11 @@ public class PetParser
                 page++;
             }
 
-            stats[categoryPath] = (added, skipped);
+            stats[categoryPath] = (added, skipped); // Save stats for category
             await logWriter.WriteLineAsync($"📁 {categoryPath}: ✅ {added}, ❌ {skipped}");
         }
 
+        // Log summary
         await logWriter.WriteLineAsync("\n📊 Summary:");
         foreach (var kvp in stats)
             await logWriter.WriteLineAsync($"📁 {kvp.Key}: ✅ {kvp.Value.added} / ❌ {kvp.Value.skipped}");
@@ -163,9 +173,10 @@ public class PetParser
         await logWriter.FlushAsync();
         Console.WriteLine($"📂 Log saved: {logPath}");
 
-        return result;
+        return result; // Return parsed pets
     }
 
+    // Loads URLs from SsLvLinks.json file
     private async Task<List<string>> LoadUrlsAsync()
     {
         try
@@ -180,6 +191,7 @@ public class PetParser
         }
     }
 
+    // Loads and parses a page given a URL
     private async Task<AngleSharp.Dom.IDocument?> TryLoadPageAsync(HttpClient client, IBrowsingContext context, string url)
     {
         try
@@ -196,12 +208,14 @@ public class PetParser
         }
     }
 
+    // Extracts ad link from ad block
     private string? GetAdLink(AngleSharp.Dom.IElement ad)
     {
         var link = ad.QuerySelector("a")?.GetAttribute("href");
         return string.IsNullOrWhiteSpace(link) ? null : "https://www.ss.lv" + link;
     }
 
+    // Parses single ad page into a Pets object
     private async Task<Pets?> ParseAdAsync(string fullLink, IBrowsingContext context, HttpClient client, Guid shelterId, string baseUrl)
     {
         try
@@ -210,7 +224,7 @@ public class PetParser
             var petDoc = await context.OpenAsync(req => req.Content(petHtml));
 
             var title = petDoc.QuerySelector("title")?.TextContent?.Trim();
-            var cleanTitle = Regex.Replace(title?.Split("€. ").LastOrDefault() ?? title ?? "Unnamed", @"-+\s*Sludinājumi\s*$", "", RegexOptions.IgnoreCase).Trim();
+            var cleanTitle = Regex.Replace(title?.Split("€. ").LastOrDefault() ?? title ?? "Unnamed", "-+\\s*Sludinājumi\\s*$", "", RegexOptions.IgnoreCase).Trim();
 
             var breedText = GetFieldValue(petDoc, "Šķirne:") ?? GetFieldValue(petDoc, "Порода:");
             var ageText = GetFieldValue(petDoc, "Vecums:") ?? GetFieldValue(petDoc, "Возраст:");
@@ -257,6 +271,7 @@ public class PetParser
         }
     }
 
+    // Extracts text content for a label in a table row
     private string? GetFieldValue(AngleSharp.Dom.IDocument doc, string fieldName)
     {
         return doc.QuerySelectorAll("tr")

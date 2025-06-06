@@ -4,7 +4,7 @@ using System.IO;
 using DotNetEnv;
 using System;
 
-
+// Provides a way to create AppDbContext during design-time (e.g., for migrations)
 public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
     public AppDbContext CreateDbContext(string[] args)
@@ -22,6 +22,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
         optionsBuilder.UseNpgsql(connectionString);
 
+        // Return new instance of AppDbContext with configured options
         return new AppDbContext(optionsBuilder.Options);
     }
 }

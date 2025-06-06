@@ -204,6 +204,7 @@ public class SheltersController : ControllerBase
 
         try
         {
+            // Transaction
             using var transaction = await db.Database.BeginTransactionAsync();
             db.Shelters.Remove(shelter);
             await db.SaveChangesAsync();

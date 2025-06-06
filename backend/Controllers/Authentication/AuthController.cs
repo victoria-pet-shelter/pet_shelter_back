@@ -31,7 +31,7 @@ public class AuthController : ControllerBase
             return BadRequest(new { errors });
 
         try
-        { // Encrypt
+        {   // Encrypt
             string? encryptedEmail = EncryptionService.Encrypt(user.email);
             var emailHash = EncryptionService.Hash(user.email);
 
@@ -51,6 +51,7 @@ public class AuthController : ControllerBase
                 role = user.role
             };
 
+            // Transaction
             using var transaction = await db.Database.BeginTransactionAsync();
             await db.Users.AddAsync(newUser);
             await db.SaveChangesAsync();
