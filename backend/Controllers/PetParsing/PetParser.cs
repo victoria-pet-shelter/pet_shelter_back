@@ -48,16 +48,13 @@ public class PetParser
         var context = BrowsingContext.New(Configuration.Default.WithDefaultLoader());
 
         var stats = new Dictionary<string, (int added, int skipped)>();
-        string logPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Logs", $"parse_{DateTime.Now:yyyyMMdd_HHmmss}.log");
-        logPath = Path.GetFullPath(logPath);
+        string logPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Logs", $"parse_{DateTime.Now:yyyyMMdd_HHmmss}.log"));
         Directory.CreateDirectory(Path.GetDirectoryName(logPath)!);
         using var logWriter = new StreamWriter(logPath);
 
         List<string> urls = await LoadUrlsAsync();
         if (urls.Count == 0)
-        {
             return result;
-        }
 
         foreach (var baseUrl in urls)
         {
@@ -93,21 +90,6 @@ public class PetParser
                     break;
                 }
 
-                var canonicalHref = document.QuerySelector("link[rel='canonical']")?.GetAttribute("href");
-                var canonicalUrl = canonicalHref?.TrimEnd('/');
-                var expectedFirstPage = baseUrl.TrimEnd('/') + "/index.html";
-
-                await logWriter.WriteLineAsync($"🔎 Canonical: {canonicalUrl} | Expected: {expectedFirstPage}");
-
-                if (canonicalUrl != null &&
-                    page > 1 &&
-                    (canonicalUrl == baseUrl.TrimEnd('/') || canonicalUrl == expectedFirstPage))
-                {
-                    Console.WriteLine("🔁 Redirected to first page — stopping this category.");
-                    await logWriter.WriteLineAsync("🔁 Redirected to first page — stopping this category.");
-                    break;
-                }
-
                 string? currentPageHtml = document.DocumentElement?.OuterHtml;
 
                 if (!string.IsNullOrEmpty(firstPageHtml) &&
@@ -121,8 +103,8 @@ public class PetParser
                 }
 
                 var ads = document.QuerySelectorAll(".d1")
-                                 .Where(e => e.QuerySelector("a") != null &&
-                                             e.QuerySelector("a")!.GetAttribute("href")?.Contains("/msg/") == true).ToList();
+                    .Where(e => e.QuerySelector("a")?.GetAttribute("href")?.Contains("/msg/") == true)
+                    .ToList();
 
                 if (ads.Count == 0)
                 {
@@ -134,13 +116,9 @@ public class PetParser
                 foreach (var ad in ads)
                 {
                     string? fullLink = GetAdLink(ad);
-                    if (string.IsNullOrWhiteSpace(fullLink))
-                    {
-                        skipped++;
-                        continue;
-                    }
-
-                    if (await _db.Pets.AnyAsync(p => p.external_url == fullLink) || result.Any(p => p.external_url == fullLink))
+                    if (string.IsNullOrWhiteSpace(fullLink) ||
+                        await _db.Pets.AnyAsync(p => p.external_url == fullLink) ||
+                        result.Any(p => p.external_url == fullLink))
                     {
                         skipped++;
                         continue;
@@ -169,23 +147,18 @@ public class PetParser
                 }
 
                 if (collected >= max)
-                {
                     break;
-                }
 
                 page++;
             }
 
             stats[categoryPath] = (added, skipped);
             await logWriter.WriteLineAsync($"📁 {categoryPath}: ✅ {added}, ❌ {skipped}");
-            await logWriter.FlushAsync();
         }
 
         await logWriter.WriteLineAsync("\n📊 Summary:");
         foreach (var kvp in stats)
-        {
             await logWriter.WriteLineAsync($"📁 {kvp.Key}: ✅ {kvp.Value.added} / ❌ {kvp.Value.skipped}");
-        }
 
         await logWriter.FlushAsync();
         Console.WriteLine($"📊 Total pets parsed: {result.Count}");
@@ -193,8 +166,6 @@ public class PetParser
 
         return result;
     }
-
-
 
     private async Task<List<string>> LoadUrlsAsync()
     {
@@ -216,7 +187,6 @@ public class PetParser
         {
             var response = await client.GetAsync(url);
             if (!response.IsSuccessStatusCode) return null;
-
             var html = await response.Content.ReadAsStringAsync();
             return await context.OpenAsync(req => req.Content(html));
         }
