@@ -161,7 +161,6 @@ public class PetParser
             await logWriter.WriteLineAsync($"📁 {kvp.Key}: ✅ {kvp.Value.added} / ❌ {kvp.Value.skipped}");
 
         await logWriter.FlushAsync();
-        Console.WriteLine($"📊 Total pets parsed: {result.Count}");
         Console.WriteLine($"📂 Log saved: {logPath}");
 
         return result;
