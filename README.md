@@ -87,11 +87,9 @@ Development tasks are tracked using GitHub Projects:
 
 ---
 
-## 🧪 Tests (optional)
-
-Tests can be added using `xUnit` or `NUnit`.
-
----
+```bash
+docker pull alaner/pet_shelter_backend:latest
+```
 
 ## 🧠 Contributors
 
