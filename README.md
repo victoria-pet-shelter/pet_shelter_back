@@ -42,7 +42,7 @@ ENCRYPTION_KEY=your_key_in_32_symbols
 
 > `JWT_KEY` you can generate in vscode powershell using command:
 
-```shell
+```env
 openssl rand -hex 16
 or 
 python -c "import secrets; print(secrets.token_hex(16))"
@@ -50,7 +50,7 @@ python -c "import secrets; print(secrets.token_hex(16))"
 
 > `ENCRYPTION_KEY` you can generate using commands:
 
-```shell
+```bash
 openssl rand -hex 32
 or
 python -c "import secrets; import string; print(''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(32)))"
