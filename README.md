@@ -40,8 +40,21 @@ ENCRYPTION_KEY=your_key_in_32_symbols
 > Replace `your_postgres_password`, `your_jwt_secret_key` and `your_key_in_32_symbols` with your real values.
 > And if you want work with docker make `DB_HOST=postgres` and `MONGO_URI=mongodb://mongo:27017`.
 
----
+> `JWT_KEY` you can generate in vscode powershell using command:
+```python
+openssl rand -hex 16
+or 
+python -c "import secrets; print(secrets.token_hex(16))"
+```
 
+> `ENCRYPTION_KEY` you can generate using commands:
+```python
+openssl rand -hex 32
+or
+python -c "import secrets; import string; print(''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(32)))"
+```
+
+---
 ## 🚀 Project Launch
 
 In the terminal inside the `/meta` folder, run:
@@ -92,6 +105,12 @@ Development tasks are tracked using GitHub Projects:
 ```docker
 docker pull alaner/pet_shelter_backend:latest
 ```
+
+```docker
+docker-compose up -d
+```
+
+> Check please `wait-for-it.sh` file. It need be in `LF` format.
 
 ---
 
