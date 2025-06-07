@@ -45,7 +45,7 @@ public class BreedResolver
         }
         catch (Exception ex)
         {
-            Console.WriteLine("❌ Breed resolution error: " + ex);
+            Console.WriteLine("❌ Breed resolution error: " + ex.Message);
             return await GetOrCreateBreedAsync("Unknown", null);
         }
     }

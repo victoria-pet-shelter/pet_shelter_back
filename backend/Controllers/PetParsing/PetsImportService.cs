@@ -42,7 +42,7 @@ public class PetImportBackgroundService : BackgroundService
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error during import: {ex}");
+                Console.WriteLine($"❌ Error during import: {ex.Message}");
             }
 
             await Task.Delay(TimeSpan.FromMinutes(60), stoppingToken); // every N minutes
