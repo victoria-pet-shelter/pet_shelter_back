@@ -83,7 +83,7 @@ To test endpoints in browser, open:
 http://localhost:5000/swagger
 ```
 
-You can use `/register` and `/login` to get a JWT token, and authorize requests and more.
+You can use `/register` and `/login` to get a JWT token, authorize requests and more.
 
 ---
 
@@ -114,6 +114,7 @@ Development tasks are tracked using GitHub Projects:
 docker pull alaner/pet_shelter_backend:latest
 docker-compose up -d
 ```
+
 > Make sure the wait-for-it.sh file is present and uses LF (Unix-style) line endings.
 
 ---
