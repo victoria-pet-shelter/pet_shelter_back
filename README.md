@@ -41,6 +41,7 @@ ENCRYPTION_KEY=your_key_in_32_symbols
 > And if you want work with docker make `DB_HOST=postgres` and `MONGO_URI=mongodb://mongo:27017`.
 
 > `JWT_KEY` you can generate in vscode powershell using command:
+
 ```shell
 openssl rand -hex 16
 or 
@@ -48,6 +49,7 @@ python -c "import secrets; print(secrets.token_hex(16))"
 ```
 
 > `ENCRYPTION_KEY` you can generate using commands:
+
 ```shell
 openssl rand -hex 32
 or
