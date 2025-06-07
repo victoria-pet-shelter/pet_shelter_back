@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace main.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250604171202_AddPetCategory")]
+    partial class AddPetCategory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -48,7 +51,7 @@ namespace main.Migrations
 
                     b.HasIndex("user_id", "pet_id");
 
-                    b.ToTable("AdoptionRequests", (string)null);
+                    b.ToTable("AdoptionRequests");
                 });
 
             modelBuilder.Entity("Models.AdoptionStatuses", b =>
@@ -64,7 +67,7 @@ namespace main.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("AdoptionStatuses", (string)null);
+                    b.ToTable("AdoptionStatuses");
                 });
 
             modelBuilder.Entity("Models.Breeds", b =>
@@ -83,7 +86,7 @@ namespace main.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Breeds", (string)null);
+                    b.ToTable("Breeds");
                 });
 
             modelBuilder.Entity("Models.Favorites", b =>
@@ -107,7 +110,7 @@ namespace main.Migrations
 
                     b.HasIndex("user_id", "pet_id");
 
-                    b.ToTable("Favorites", (string)null);
+                    b.ToTable("Favorites");
                 });
 
             modelBuilder.Entity("Models.Genders", b =>
@@ -123,7 +126,7 @@ namespace main.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Genders", (string)null);
+                    b.ToTable("Genders");
                 });
 
             modelBuilder.Entity("Models.News", b =>
@@ -149,7 +152,7 @@ namespace main.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("News", (string)null);
+                    b.ToTable("News");
                 });
 
             modelBuilder.Entity("Models.Pets", b =>
@@ -219,7 +222,7 @@ namespace main.Migrations
 
                     b.HasIndex("species_id");
 
-                    b.ToTable("Pets", (string)null);
+                    b.ToTable("Pets");
                 });
 
             modelBuilder.Entity("Models.Reviews", b =>
@@ -249,7 +252,7 @@ namespace main.Migrations
 
                     b.HasIndex("user_id", "shelter_id");
 
-                    b.ToTable("Reviews", (string)null);
+                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("Models.Roles", b =>
@@ -265,7 +268,7 @@ namespace main.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Roles", (string)null);
+                    b.ToTable("Roles");
                 });
 
             modelBuilder.Entity("Models.Shelters", b =>
@@ -302,7 +305,7 @@ namespace main.Migrations
 
                     b.HasIndex("shelter_owner_id");
 
-                    b.ToTable("Shelters", (string)null);
+                    b.ToTable("Shelters");
                 });
 
             modelBuilder.Entity("Models.Species", b =>
@@ -318,54 +321,7 @@ namespace main.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Species", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            id = 1,
-                            name = "dog"
-                        },
-                        new
-                        {
-                            id = 2,
-                            name = "cat"
-                        },
-                        new
-                        {
-                            id = 3,
-                            name = "rabbit"
-                        },
-                        new
-                        {
-                            id = 4,
-                            name = "bird"
-                        },
-                        new
-                        {
-                            id = 5,
-                            name = "rodent"
-                        },
-                        new
-                        {
-                            id = 6,
-                            name = "reptile"
-                        },
-                        new
-                        {
-                            id = 7,
-                            name = "horse"
-                        },
-                        new
-                        {
-                            id = 8,
-                            name = "fish"
-                        },
-                        new
-                        {
-                            id = 9,
-                            name = "exotic"
-                        });
+                    b.ToTable("Species");
                 });
 
             modelBuilder.Entity("Models.Users", b =>
@@ -378,9 +334,6 @@ namespace main.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("email")
-                        .HasColumnType("text");
-
-                    b.Property<string>("email_hash")
                         .HasColumnType("text");
 
                     b.Property<string>("name")
@@ -402,7 +355,7 @@ namespace main.Migrations
 
                     b.HasIndex("name");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("Models.AdoptionRequests", b =>

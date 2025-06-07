@@ -1,62 +1,65 @@
-#### Основные функции сайта (с добавленной регистрацией)  
-1. Главная страница  
-   - Краткая информация о питомнике  
-   - Карусель или галерея с фотографиями животных  
-   - Основные ссылки на страницы (каталог, контакты, о нас)  
-   - Кнопки "Войти / Зарегистрироваться"
+#### Main functions of the site (with added registration)
+1. Home page
+- Brief information about the nursery
+- Carousel or gallery with photos of animals
+- Main links to pages (catalog, contacts, about us)
+- "Login / Register" buttons
 
-2. Каталог животных  
-   - Фильтрация по породе, возрасту, полу, цвету  
-   - Карточки с фото, описанием, возрастом, характером и состоянием здоровья животного  
-   - Кнопка "Подробнее" для просмотра детальной информации  
+2. Animal catalog
+- Filtering by breed, age, gender, color
+- Cards with photos, description, age, character and health of the animal
+- "More details" button to view detailed information
 
-3. Страница конкретного животного  
-   - Подробное описание питомца  
-   - Дополнительные фотографии  
-   - Кнопка "Оставить заявку" на усыновление (доступно только зарегистрированным пользователям)  
+3. Page of a specific animal
+- Detailed description of the pet
+- Additional photos
+- "Submit an application" button for adoption (available only to registered users)
 
-4. Регистрация / Вход (для двух типов пользователей: обычные и питомники)  
-   - Выбор роли: "Обычный пользователь" или "Представитель питомника"  
-   - Форма регистрации:  
-     - Для обычного пользователя:  
-       - ФИО, email, телефон, пароль  
-     - Для представителя питомника:  
-       - Название питомника, контактные данные, адрес, пароль  
-   - После регистрации питомнику открывается возможность добавления животных в каталог  
+4. Registration / Login (for two types of users: regular and nurseries)
+- Select a role: "Regular user" or "Representative of the nursery"
+- Registration form:
+- For a regular user:
+- Full name, email, phone, password
+- For a nursery representative:
 
-5. Личный кабинет (для обоих типов пользователей)  
-   - Для пользователя:  
-     - Просмотр своих заявок на усыновление  
-     - Возможность оставлять отзывы  
-     - Редактирование профиля  
-   - Для питомников:  
-     - Добавление новых животных в каталог  
-     - Управление карточками животных (редактирование, удаление)  
-     - Просмотр заявок на усыновление  
+- Nursery name, contact details, address, password
+- After registration, the nursery has the ability to add animals to the catalog
 
-6. Форма заявки на усыновление  
-   - Поля: ФИО, контактные данные, комментарий  
-   - Выбор животного  
-   - Кнопка "Отправить" (только для авторизованных пользователей)  
+5. Personal account (for both types of users)
+- For the user:
 
-7. Новости и статьи  
-   - Раздел с новостями о питомнике, советами по уходу за животными  
-   - Возможность фильтровать статьи по темам  
+- View your adoption applications
+- Ability to leave reviews
+- Editing a profile
+- For nurseries:
 
-8. Галерея  
-   - Фото животных в питомнике  
-   - До и после (например, фото до усыновления и после)  
+- Adding new animals to the catalog
+- Managing animal cards (editing, deleting)
+- Viewing adoption applications
 
-9. Отзывы  
-   - Блок с отзывами пользователей  
-   - Форма добавления нового отзыва (только для зарегистрированных пользователей)  
+6. Adoption application form
+- Fields: Full name, contact details, comment
+- Selecting an animal
+- "Send" button (only for authorized users)
 
-10. Контакты  
-   - Карта с местоположением питомника  
-   - Телефон, email, соцсети  
-   - Часы работы  
+7. News and articles
+- Section with news about the nursery, advice on caring for animals
+- Ability to filter articles by topic
 
-11. О нас  
-   - История питомника  
-   - Фотографии сотрудников  
-   - Миссия и ценности
+8. Gallery
+- Photos of animals in the nursery
+- Before and after (for example, photos before adoption and after)
+
+9. Reviews
+- Block with user reviews
+- Form for adding a new review (only for registered users)
+
+10. Contacts
+- Map with the location of the nursery
+- Phone, email, social networks
+- Opening hours
+
+11. About us
+- History of the nursery
+- Photos of employees
+- Mission and values

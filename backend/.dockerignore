@@ -1,0 +1,6 @@
+bin/
+obj/
+
+*.md
+*.db
+backend/Logs
