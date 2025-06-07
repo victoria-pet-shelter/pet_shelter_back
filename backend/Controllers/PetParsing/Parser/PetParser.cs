@@ -20,7 +20,6 @@ public class PetParser
     private readonly BreedResolver _breedResolver;
     private readonly GenderResolver _genderResolver;
     private readonly ImageFetcher _imageFetcher;
-    private readonly SpeciesDetector _speciesDetector;
     private readonly string _linkPath;
 
     // Constructor injecting required services
@@ -30,8 +29,7 @@ public class PetParser
         AppDbContext db,
         BreedResolver breedResolver,
         GenderResolver genderResolver,
-        ImageFetcher imageFetcher,
-        SpeciesDetector speciesDetector)
+        ImageFetcher imageFetcher)
     {
         _httpClientFactory = httpClientFactory;
         _mongoService = mongoService;
@@ -39,9 +37,33 @@ public class PetParser
         _breedResolver = breedResolver;
         _genderResolver = genderResolver;
         _imageFetcher = imageFetcher;
-        _speciesDetector = speciesDetector;
         _linkPath = Path.Combine(AppContext.BaseDirectory, "Data", "Seed", "SsLvLinks.json");
     }
+
+
+    private static readonly Dictionary<string, int> _categorySpeciesMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["dogs"] = 1,
+        ["cats"] = 2,
+        ["exotic-animals"] = 3,
+        ["rodents/degu"] = 4,
+        ["rodents/domestic-rats"] = 4,
+        ["rodents/rabbits"] = 4,
+        ["rodents/guinea-pigs"] = 4,
+        ["rodents/ferret"] = 4,
+        ["rodents/hamsters"] = 4,
+        ["rodents/chinchillas"] = 4,
+        ["parrots-and-birds/canaries"] = 5,
+        ["parrots-and-birds/parrots"] = 5,
+        ["fish/fish"] = 6,
+        ["agricultural-animals/rams-sheeps"] = 7,
+        ["agricultural-animals/goats"] = 7,
+        ["agricultural-animals/large-horned-livestock"] = 7,
+        ["agricultural-animals/pigs"] = 7,
+        ["agricultural-animals/horses-donkeys-other"] = 7,
+        ["agricultural-animals/rabbits-nutrias"] = 7
+    };
+
 
     // Main parsing function
     public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 50)
@@ -62,21 +84,12 @@ public class PetParser
 
         foreach (var baseUrl in urls) // Loop through each category URL
         {
-            int page = 1; 
+            int page = 1;
             int collected = 0; // Count collected items
             int added = 0;
             int skipped = 0;
 
             // Extract category name from URL path
-            Uri uri = new Uri(baseUrl);
-            string categoryPath = uri.AbsolutePath
-                .Replace("/ru/animals/", "")
-                .Replace("/lv/animals/", "")
-                .Replace("/ru/agriculture/animal-husbandry/agricultural-animals/", "")
-                .Trim('/')
-                .Replace("/sell", "")
-                .ToLowerInvariant();
-
             // Load first page for comparison
             string firstPageUrl = baseUrl + "index.html";
             var firstPageDoc = await TryLoadPageAsync(client, context, firstPageUrl);
@@ -161,8 +174,8 @@ public class PetParser
                 page++;
             }
 
-            stats[categoryPath] = (added, skipped); // Save stats for category
-            await logWriter.WriteLineAsync($"📁 {categoryPath}: ✅ {added}, ❌ {skipped}");
+            stats[ExtractCategoryPath(baseUrl)] = (added, skipped); // Save stats for category
+            await logWriter.WriteLineAsync($"📁 {ExtractCategoryPath(baseUrl)}: ✅ {added}, ❌ {skipped}");
         }
 
         // Log summary
@@ -233,18 +246,12 @@ public class PetParser
             var priceText = PriceResolver.ExtractPrice(description);
             var photoId = await _imageFetcher.FetchImageIdFromPage(petDoc);
 
-            int? speciesId = _speciesDetector.DetectSpeciesId(breedText) ?? 999;
-            int breedId = await _breedResolver.ResolveBreedIdAsync(breedText);
-            int? genderId = await _genderResolver.ResolveGenderAsync(description, title);
 
-            Uri uri = new Uri(baseUrl);
-            string categoryPath = uri.AbsolutePath
-                .Replace("/ru/animals/", "")
-                .Replace("/lv/animals/", "")
-                .Replace("/ru/agriculture/animal-husbandry/agricultural-animals/", "")
-                .Trim('/')
-                .Replace("/sell", "")
-                .ToLowerInvariant();
+            string categoryPath = ExtractCategoryPath(baseUrl);
+            int speciesId = _categorySpeciesMap.TryGetValue(categoryPath, out var id) ? id : 9;
+
+            int breedId = await _breedResolver.ResolveBreedIdAsync(breedText, speciesId);
+            int? genderId = await _genderResolver.ResolveGenderAsync(description, title);
 
             return new Pets
             {
@@ -253,7 +260,7 @@ public class PetParser
                 description = description,
                 age = AgeResolver.ParseAge(ageText),
                 breed_id = breedId,
-                species_id = speciesId.Value,
+                species_id = speciesId,
                 color = colorText,
                 gender_id = genderId,
                 mongo_image_id = photoId?.ToString(),
@@ -279,5 +286,17 @@ public class PetParser
                 tr.Children.Length == 2 &&
                 tr.Children[0].TextContent.Trim().StartsWith(fieldName, StringComparison.OrdinalIgnoreCase))
             ?.Children[1]?.TextContent?.Trim();
+    }
+
+    private static string ExtractCategoryPath(string url)
+    {
+        Uri uri = new Uri(url);
+        return uri.AbsolutePath
+            .Replace("/ru/animals/", "")
+            .Replace("/lv/animals/", "")
+            .Replace("/ru/agriculture/animal-husbandry/agricultural-animals/", "")
+            .Trim('/')
+            .Replace("/sell", "")
+            .ToLowerInvariant();
     }
 }

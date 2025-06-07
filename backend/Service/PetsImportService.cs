@@ -54,6 +54,7 @@ public class PetImportBackgroundService : BackgroundService
                     if (!exists)
                         newPets.Add(pet); // Add only if not already in DB
                 }
+
                 // Save new pets in transaction
                 using var transaction = await db.Database.BeginTransactionAsync();
                 await db.Pets.AddRangeAsync(newPets);

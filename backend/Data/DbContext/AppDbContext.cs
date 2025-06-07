@@ -38,16 +38,15 @@ public class AppDbContext : DbContext
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<Species>().HasData(
-            new Species { id = 1, name = "dog" },
-            new Species { id = 2, name = "cat" },
-            new Species { id = 3, name = "rabbit" },
-            new Species { id = 4, name = "bird" },
-            new Species { id = 5, name = "rodent" },
-            new Species { id = 6, name = "reptile" },
-            new Species { id = 7, name = "horse" },
-            new Species { id = 8, name = "fish" },
-            new Species { id = 9, name = "exotic" }
-            // new Species { id = 999, name = "Unknown" }
+            new Species { id = 1, name = "Dog" },
+            new Species { id = 2, name = "Cat" },
+            new Species { id = 3, name = "Exotic" },
+            new Species { id = 4, name = "Rodent" },
+            new Species { id = 5, name = "Bird" },
+            new Species { id = 6, name = "Fish" },
+            new Species { id = 7, name = "Farm" },
+            new Species { id = 8, name = "Reptile" },
+            new Species { id = 9, name = "Unknown" }
         );
 
         // Shelter -> User (Owner)

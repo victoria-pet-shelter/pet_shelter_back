@@ -7,19 +7,13 @@ using System;
 public class BreedResolver
 {
     private readonly AppDbContext _db;
-    private readonly SpeciesDetector _detector;
-
+    
     public BreedResolver(AppDbContext db)
     {
-        string breedsPath = Path.Combine(AppContext.BaseDirectory, "Data", "Seed", "species_breeds.json");
-        string keywordsPath = Path.Combine(AppContext.BaseDirectory, "Data", "Seed", "species_keywords.json");
-        string fallbackLogPath = Path.Combine(AppContext.BaseDirectory, "Logs", "unknown_breeds.log");
-
         _db = db;
-        _detector = new SpeciesDetector(breedsPath, keywordsPath, fallbackLogPath);
     }
 
-    public async Task<int> ResolveBreedIdAsync(string? breedName)
+    public async Task<int> ResolveBreedIdAsync(string? breedName, int speciesId)
     {
         try
         {
@@ -39,8 +33,6 @@ public class BreedResolver
                 return existing.id;
             }
 
-            int? speciesId = _detector.DetectSpeciesId(breedName);
-
             return await GetOrCreateBreedAsync(breedName!, speciesId);
         }
         catch (Exception ex)
@@ -49,7 +41,6 @@ public class BreedResolver
             return await GetOrCreateBreedAsync("Unknown", null);
         }
     }
-
 
     private async Task<int> GetOrCreateBreedAsync(string name, int? speciesId)
     {
@@ -68,6 +59,4 @@ public class BreedResolver
         await _db.SaveChangesAsync();
         return newBreed.id;
     }
-
-
 }
