@@ -44,7 +44,7 @@ ENCRYPTION_KEY=your_key_in_32_symbols
 
 ```bash
 openssl rand -hex 16
-or 
+or
 python -c "import secrets; print(secrets.token_hex(16))"
 ```
 
@@ -73,7 +73,7 @@ This will build and run the application.
 
 To test endpoints in browser, open:
 
-```yaml
+```Provider
 http://localhost:5000/swagger
 ```
 
