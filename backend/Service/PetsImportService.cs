@@ -94,7 +94,8 @@ public class PetImportBackgroundService : BackgroundService
             password = "",
             role = "shelter_owner"
         };
-
+        
+        // Transaction
         using var transaction = await db.Database.BeginTransactionAsync();
         await db.Users.AddAsync(newUser);
         await db.SaveChangesAsync();

@@ -1,6 +1,7 @@
 # 🐾 Pet Shelter Backend
 
-Pet Shelter is a web application for managing pets in shelters. It supports user authentication, pet adoption workflows, automatic parsing of animals from ss.lv, and media storage. This is the **backend** part, built using **ASP.NET Core**, **Entity Framework Core**, and **MongoDB**.
+Pet Shelter is a web application for managing pets in shelters. It supports user authentication, pet adoption workflows, automatic parsing of animals from ss.lv, and media storage. 
+This is the **backend** part, built using **ASP.NET Core**, **Entity Framework Core**, and **MongoDB**.
 
 ---
 
@@ -40,13 +41,33 @@ ENCRYPTION_KEY=your_key_in_32_symbols
 > Replace `your_postgres_password`, `your_jwt_secret_key` and `your_key_in_32_symbols` with your real values.
 > And if you want work with docker make `DB_HOST=postgres` and `MONGO_URI=mongodb://mongo:27017`.
 
+🔑 JWT Key Generation
+
+```bash
+# Using OpenSSL
+openssl rand -hex 16
+
+# Or using Python
+python -c "import secrets; print(secrets.token_hex(16))"
+```
+
+🔒 Encryption Key Generation
+
+```bash
+# Using OpenSSL
+openssl rand -hex 32
+
+# Or using Python
+python -c "import secrets; import string; print(''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(32)))"
+```
+
 ---
 
 ## 🚀 Project Launch
 
 In the terminal inside the `/meta` folder, run:
 
-```bash
+```Makefile
 make
 ```
 
@@ -58,11 +79,11 @@ This will build and run the application.
 
 To test endpoints in browser, open:
 
-```
+```Provider
 http://localhost:5000/swagger
 ```
 
-You can use `/register` and `/login` to get a JWT token, and authorize requests.
+You can use `/register` and `/login` to get a JWT token, authorize requests and more.
 
 ---
 
@@ -89,9 +110,12 @@ Development tasks are tracked using GitHub Projects:
 
 ## 🔵Docker
 
-```docker
+```Docker
 docker pull alaner/pet_shelter_backend:latest
+docker-compose up -d
 ```
+
+> Make sure the wait-for-it.sh file is present and uses LF (Unix-style) line endings.
 
 ---
 
