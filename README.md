@@ -104,7 +104,7 @@ Development tasks are tracked using GitHub Projects:
 
 ## 🔵Docker
 
-```shell
+```yaml
 docker pull alaner/pet_shelter_backend:latest
 ```
 
