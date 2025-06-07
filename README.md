@@ -41,14 +41,14 @@ ENCRYPTION_KEY=your_key_in_32_symbols
 > And if you want work with docker make `DB_HOST=postgres` and `MONGO_URI=mongodb://mongo:27017`.
 
 > `JWT_KEY` you can generate in vscode powershell using command:
-```python
+```shell
 openssl rand -hex 16
 or 
 python -c "import secrets; print(secrets.token_hex(16))"
 ```
 
 > `ENCRYPTION_KEY` you can generate using commands:
-```python
+```shell
 openssl rand -hex 32
 or
 python -c "import secrets; import string; print(''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(32)))"
@@ -102,11 +102,11 @@ Development tasks are tracked using GitHub Projects:
 
 ## 🔵Docker
 
-```docker
+```shell
 docker pull alaner/pet_shelter_backend:latest
 ```
 
-```docker
+```shell
 docker-compose up -d
 ```
 
