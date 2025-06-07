@@ -41,7 +41,7 @@ ENCRYPTION_KEY=your_key_in_32_symbols
 > Replace `your_postgres_password`, `your_jwt_secret_key` and `your_key_in_32_symbols` with your real values.
 > And if you want work with docker make `DB_HOST=postgres` and `MONGO_URI=mongodb://mongo:27017`.
 
-> 🔑 JWT Key Generation
+🔑 JWT Key Generation
 
 ```bash
 # Using OpenSSL
@@ -51,7 +51,7 @@ openssl rand -hex 16
 python -c "import secrets; print(secrets.token_hex(16))"
 ```
 
-> 🔒 Encryption Key Generation
+🔒 Encryption Key Generation
 
 ```bash
 # Using OpenSSL
