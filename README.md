@@ -107,11 +107,11 @@ Development tasks are tracked using GitHub Projects:
 ```yaml
 docker pull alaner/pet_shelter_backend:latest
 ```
-
+<pre lang="bash"> 
 ```shell
 docker-compose up -d
 ```
-
+</pre>
 > Check please `wait-for-it.sh` file. It need be in `LF` format.
 
 ---
