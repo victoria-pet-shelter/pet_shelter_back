@@ -42,7 +42,7 @@ ENCRYPTION_KEY=your_key_in_32_symbols
 
 > `JWT_KEY` you can generate in vscode powershell using command:
 
-```yaml
+```bash
 openssl rand -hex 16
 or 
 python -c "import secrets; print(secrets.token_hex(16))"
@@ -50,7 +50,7 @@ python -c "import secrets; print(secrets.token_hex(16))"
 
 > `ENCRYPTION_KEY` you can generate using commands:
 
-```yaml
+```bash
 openssl rand -hex 32
 or
 python -c "import secrets; import string; print(''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(32)))"
@@ -61,7 +61,7 @@ python -c "import secrets; import string; print(''.join(secrets.choice(string.as
 
 In the terminal inside the `/meta` folder, run:
 
-```yaml
+```Makefile
 make
 ```
 
@@ -104,11 +104,11 @@ Development tasks are tracked using GitHub Projects:
 
 ## 🔵Docker
 
-```yaml
+```Docker
 docker pull alaner/pet_shelter_backend:latest
 ```
 
-```yaml
+```Docker
 docker-compose up -d
 ```
 
