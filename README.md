@@ -121,5 +121,4 @@ docker-compose up -d
 
 ## 🧠 Contributors
 
-- Project by [Alan Arzumanjan](https://github.com/alanarzumanjan)
-- and [Mark Korobkin](https://github.com/maemolol)
+- Project by [Alan Arzumanjan](https://github.com/alanarzumanjan) and [Mark Korobkin](https://github.com/maemolol)
