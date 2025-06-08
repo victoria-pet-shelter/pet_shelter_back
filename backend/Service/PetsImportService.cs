@@ -54,6 +54,7 @@ public class PetImportBackgroundService : BackgroundService
                     if (!exists)
                         newPets.Add(pet); // Add only if not already in DB
                 }
+
                 // Save new pets in transaction
                 using var transaction = await db.Database.BeginTransactionAsync();
                 await db.Pets.AddRangeAsync(newPets);
@@ -73,7 +74,7 @@ public class PetImportBackgroundService : BackgroundService
             }
 
             // Wait before next run (default 60 minutes)
-            await Task.Delay(TimeSpan.FromMinutes(60), stoppingToken);
+            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
         }
     }
 

@@ -48,6 +48,8 @@ CREATE TABLE "Genders" (
     CONSTRAINT "PK_Genders" PRIMARY KEY (id)
 );
 
+DELETE FROM "Genders";
+
 INSERT INTO "Genders" ("id", "name") VALUES
   (1, 'Male'),
   (2, 'Female')
@@ -115,17 +117,16 @@ CREATE TABLE "Species" (
     CONSTRAINT "PK_Species" PRIMARY KEY (id)
 );
 
-INSERT INTO "Species" ("id", "name") VALUES
-  (1, 'Dogs'),
-  (2, 'Cats'),
-  (3, 'Rabbits'),
-  (4, 'Birds'),
-  (5, 'Rodents'),
-  (6, 'Reptiles'),
-  (7, 'Horses'),
-  (8, 'Fish'),
-  (9, 'Agricultural'),
-  (999, 'Unknown')
+INSERT INTO "Species" (id, name) VALUES
+(1, 'Dog'),
+(2, 'Cat'),
+(3, 'Exotic'),
+(4, 'Rodent'),
+(5, 'Bird'),
+(6, 'Fish'),
+(7, 'Farm'),
+(8, 'Reptile'),
+(9, 'Unknown')
 ON CONFLICT ("id") DO NOTHING;
 
 CREATE TABLE "Users" (
