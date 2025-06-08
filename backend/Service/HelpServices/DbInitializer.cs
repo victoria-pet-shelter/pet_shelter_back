@@ -11,14 +11,13 @@ public static class DbInitializer
     {
         new Species { id = 1, name = "Dogs" },
         new Species { id = 2, name = "Cats" },
-        new Species { id = 3, name = "Rabbits" },
-        new Species { id = 4, name = "Birds" },
-        new Species { id = 5, name = "Rodents" },
-        new Species { id = 6, name = "Reptiles" },
-        new Species { id = 7, name = "Horses" },
-        new Species { id = 8, name = "Fish" },
-        new Species { id = 9, name = "Agricultural" },
-        new Species { id = 999, name = "Unknown" }
+        new Species { id = 3, name = "Exotic" },
+        new Species { id = 4, name = "Rodent" },
+        new Species { id = 5, name = "Bird" },
+        new Species { id = 6, name = "Fish" },
+        new Species { id = 7, name = "Farm" },
+        new Species { id = 8, name = "Reptile" },
+        new Species { id = 9, name = "Unknown" }
     };
 
     public static async Task EnsureDbIsInitializedAsync(AppDbContext db)
