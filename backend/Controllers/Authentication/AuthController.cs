@@ -30,6 +30,12 @@ public class AuthController : ControllerBase
         if (errors.Any())
             return BadRequest(new { errors });
 
+        if (string.IsNullOrWhiteSpace(user.email))
+            return BadRequest("Email is required.");
+
+        if (string.IsNullOrWhiteSpace(user.name))
+            return BadRequest("Username is required.");
+
         try
         {   // Encrypt
             string? encryptedEmail = EncryptionService.Encrypt(user.email);
@@ -70,15 +76,17 @@ public class AuthController : ControllerBase
     {
         var validator = new UserLoginValidator();
         var errors = validator.Validate(loginRequest);
+
         if (errors.Any())
             return BadRequest(new { errors });
+
+        if (string.IsNullOrWhiteSpace(loginRequest.email))
+            return BadRequest("Email is required.");
 
         try
         {
             var emailHash = EncryptionService.Hash(loginRequest.email);
             var user = await db.Users.FirstOrDefaultAsync(u => u.email_hash == emailHash);
-            if (string.IsNullOrWhiteSpace(user.email))
-                return BadRequest("Email is required.");
 
             Console.WriteLine($"🔐 Email hash: {emailHash}");
 

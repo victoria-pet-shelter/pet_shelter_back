@@ -48,6 +48,8 @@ CREATE TABLE "Genders" (
     CONSTRAINT "PK_Genders" PRIMARY KEY (id)
 );
 
+DELETE FROM "Genders";
+
 INSERT INTO "Genders" ("id", "name") VALUES
   (1, 'Male'),
   (2, 'Female')

@@ -64,7 +64,6 @@ public class PetParser
         ["agricultural-animals/rabbits-nutrias"] = 7
     };
 
-
     // Main parsing function
     public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 50)
     {
@@ -171,6 +170,9 @@ public class PetParser
                 if (collected >= max)
                     break;
 
+                if (page >= 1000)
+                    break;
+                
                 page++;
             }
 

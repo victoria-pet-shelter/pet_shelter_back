@@ -74,7 +74,7 @@ public class PetImportBackgroundService : BackgroundService
             }
 
             // Wait before next run (default 60 minutes)
-            await Task.Delay(TimeSpan.FromMinutes(60), stoppingToken);
+            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
         }
     }
 
