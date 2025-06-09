@@ -62,5 +62,13 @@
     "breeds": [
       "Goldfish", "Zelta zivtiņa", "Золотая рыбка", "Betta", "Бетта", "Guppy", "Гуппи", "Гуппі", "Tetra", "Тетра"
     ]
+  },
+  "agricultural": {
+    "species_id": 9,
+    "breeds": [
+      "Sheep", "Goat", "Cow", "Bull", "Pig", "Rabbit", "Horse",
+      "Aita", "Kaza", "Govs", "Bulls", "Cūka", "Trusis", "Zirgs",
+      "Овца", "Коза", "Корова", "Бык", "Свинья", "Кролик", "Лошадь"
+    ]
   }
 }

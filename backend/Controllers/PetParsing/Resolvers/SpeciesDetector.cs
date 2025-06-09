@@ -1,7 +1,8 @@
-using System;
+using System.Text.RegularExpressions;
 using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
+using System.IO;
+using System;
 
 public class SpeciesDetector
 {
@@ -10,6 +11,7 @@ public class SpeciesDetector
     private readonly HashSet<string> _loggedBreeds;
     private readonly string _fallbackLogPath;
 
+    // Constructor: loads breed map and keyword hints from disk
     public SpeciesDetector(string breedsPath, string keywordsPath, string fallbackLogPath)
     {
         _fallbackLogPath = fallbackLogPath;
@@ -18,6 +20,7 @@ public class SpeciesDetector
         _loggedBreeds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     }
 
+    // Detects species ID for a given breed name
     public int? DetectSpeciesId(string? breed)
     {
         if (string.IsNullOrWhiteSpace(breed))
@@ -49,11 +52,18 @@ public class SpeciesDetector
             }
         }
 
-        // 3. Log and return 999 for unknown
+        // 3. Fallback to "exotic" check
+        if (Regex.IsMatch(lowerBreed, @"\b(игуана|хамелеон|геккон|питон|попугай ара|паук|уж|змея|обезьяна|лемур)\b", RegexOptions.IgnoreCase))
+        {
+            return 9; // exotic
+        }
+
+        // 4. Log and return 999 for unknown
         LogUnknownBreed(trimmedBreed);
         return 999;
     }
 
+    // Loads species_breeds.json (used for exact matches)
     private Dictionary<string, int> LoadSpeciesBreeds(string path)
     {
         var map = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -90,6 +100,7 @@ public class SpeciesDetector
         return map;
     }
 
+    // Loads species_keywords.json (used for partial keyword matches)
     private Dictionary<string, List<string>> LoadSpeciesKeywords(string path)
     {
         try
@@ -110,6 +121,7 @@ public class SpeciesDetector
         }
     }
 
+    // Logs breed names that couldn't be matched
     private void LogUnknownBreed(string breed)
     {
         try
@@ -128,7 +140,8 @@ public class SpeciesDetector
             Console.WriteLine("⚠️ Failed to log unknown breed: " + ex.Message);
         }
     }
-
+    
+    // Creates the log file if it doesn't exist yet
     private void EnsureLogFileExists()
     {
         try

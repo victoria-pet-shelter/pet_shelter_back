@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using MongoDB.Driver.GridFS;
+using MongoDB.Driver.GridFS; // This is a special file storage system in MongoDB
 using MongoDB.Driver;
 using MongoDB.Bson;
 using System.IO;
@@ -10,6 +10,7 @@ public class MongoService
     private readonly IMongoDatabase _database;
     private readonly GridFSBucket _bucket;
 
+    // Initializes MongoDB connection and sets up GridFS bucket
     public MongoService()
     {
         var connectionString = Environment.GetEnvironmentVariable("MONGO_URI") ?? "mongodb://localhost:27017";
@@ -24,8 +25,8 @@ public class MongoService
 
     public async Task<ObjectId> SaveImageAsync(byte[] data)
     {
-        using var stream = new MemoryStream(data);
-        var id = await _bucket.UploadFromStreamAsync(Guid.NewGuid().ToString(), stream);
+        using var stream = new MemoryStream(data); // Wrap byte array in stream
+        var id = await _bucket.UploadFromStreamAsync(Guid.NewGuid().ToString(), stream); // Store file with random name
         return id;
     }
 

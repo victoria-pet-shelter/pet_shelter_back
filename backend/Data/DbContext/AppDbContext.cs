@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
-using Models; // Models.cs
+using Models;
 
 public class AppDbContext : DbContext
 {
@@ -21,6 +21,35 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+
+        modelBuilder.Entity<Users>().ToTable("Users");
+        modelBuilder.Entity<Roles>().ToTable("Roles");
+        modelBuilder.Entity<Shelters>().ToTable("Shelters");
+        modelBuilder.Entity<Species>().ToTable("Species");
+        modelBuilder.Entity<Breeds>().ToTable("Breeds");
+        modelBuilder.Entity<Genders>().ToTable("Genders");
+        modelBuilder.Entity<Pets>().ToTable("Pets");
+        modelBuilder.Entity<AdoptionStatuses>().ToTable("AdoptionStatuses");
+        modelBuilder.Entity<AdoptionRequests>().ToTable("AdoptionRequests");
+        modelBuilder.Entity<Favorites>().ToTable("Favorites");
+        modelBuilder.Entity<News>().ToTable("News");
+        modelBuilder.Entity<Reviews>().ToTable("Reviews");
+
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Species>().HasData(
+            new Species { id = 1, name = "dog" },
+            new Species { id = 2, name = "cat" },
+            new Species { id = 3, name = "rabbit" },
+            new Species { id = 4, name = "bird" },
+            new Species { id = 5, name = "rodent" },
+            new Species { id = 6, name = "reptile" },
+            new Species { id = 7, name = "horse" },
+            new Species { id = 8, name = "fish" },
+            new Species { id = 9, name = "exotic" }
+            // new Species { id = 999, name = "Unknown" }
+        );
+
         // Shelter -> User (Owner)
         modelBuilder.Entity<Shelters>()
             .HasOne(s => s.Owner)
@@ -94,5 +123,44 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(ar => ar.pet_id)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // INDEXES
+        // WHERE, JOIN, EXISTS, ANY, FindAsync = index need
+
+        // Users
+        modelBuilder.Entity<Users>()
+            .HasIndex(u => u.email).IsUnique();
+
+        modelBuilder.Entity<Users>()
+            .HasIndex(u => u.name);
+
+        // Shelters
+        modelBuilder.Entity<Shelters>()
+            .HasIndex(s => s.email).IsUnique();
+
+        modelBuilder.Entity<Shelters>()
+            .HasIndex(s => s.shelter_owner_id);
+
+        // Pets
+        modelBuilder.Entity<Pets>()
+            .HasIndex(p => p.external_url).IsUnique();
+
+        modelBuilder.Entity<Pets>()
+            .HasIndex(p => p.shelter_id);
+
+        modelBuilder.Entity<Pets>()
+            .HasIndex(p => p.species_id);
+
+        // Favorites
+        modelBuilder.Entity<Favorites>()
+            .HasIndex(f => new { f.user_id, f.pet_id });
+
+        // Reviews
+        modelBuilder.Entity<Reviews>()
+            .HasIndex(r => new { r.user_id, r.shelter_id });
+
+        // AdoptionRequests
+        modelBuilder.Entity<AdoptionRequests>()
+            .HasIndex(ar => new { ar.user_id, ar.pet_id });
     }
 }

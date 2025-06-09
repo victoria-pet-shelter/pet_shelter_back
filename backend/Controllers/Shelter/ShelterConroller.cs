@@ -72,7 +72,13 @@ public class SheltersController : ControllerBase
             .Skip(skipCount)
             .Take(pageSize)
             .ToListAsync();
-
+            
+        // Decrypt
+        foreach (var shelter in shelters)
+        {
+            if (!string.IsNullOrWhiteSpace(shelter.email))
+                shelter.email = EncryptionService.Decrypt(shelter.email);
+        }
         return Ok(new
         {
             currentPage = page,
@@ -94,6 +100,7 @@ public class SheltersController : ControllerBase
         if (shelter == null)
             return NotFound("Shelter not found.");
 
+        shelter.email = EncryptionService.Decrypt(shelter.email);
         return Ok(shelter);
     }
 
@@ -120,13 +127,16 @@ public class SheltersController : ControllerBase
                 name = dto.name,
                 address = dto.address,
                 phone = dto.phone,
-                email = dto.email,
+                email = EncryptionService.Encrypt(dto.email),
                 description = dto.description,
                 created_at = DateTime.UtcNow
             };
 
+            // Create Shelter Transaction
+            using var transaction = await db.Database.BeginTransactionAsync();
             await db.Shelters.AddAsync(newShelter);
             await db.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return Ok(newShelter);
         }
@@ -163,11 +173,14 @@ public class SheltersController : ControllerBase
             if (dto.phone != null)
                 shelter.phone = dto.phone;
             if (dto.email != null)
-                shelter.email = dto.email;
+                shelter.email = EncryptionService.Encrypt(dto.email);
             if (dto.description != null)
                 shelter.description = dto.description;
 
+            // Transaction
+            using var transaction = await db.Database.BeginTransactionAsync();
             await db.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return Ok(shelter);
         }
@@ -191,8 +204,11 @@ public class SheltersController : ControllerBase
 
         try
         {
+            // Transaction
+            using var transaction = await db.Database.BeginTransactionAsync();
             db.Shelters.Remove(shelter);
             await db.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             return Ok(new { message = "Shelter deleted." });
         }

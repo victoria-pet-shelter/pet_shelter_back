@@ -1,14 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Bson;
-using MongoDB.Driver;
-using MongoDB.Driver.GridFS;
-using System;
 using System.Threading.Tasks;
+using MongoDB.Driver.GridFS;
+using MongoDB.Driver;
+using MongoDB.Bson;
+using System;
 
 namespace Controllers
 {
     [ApiController]
     [Route("image")]
+
     public class ImageController : ControllerBase
     {
         private readonly GridFSBucket _bucket;
