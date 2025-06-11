@@ -205,4 +205,8 @@ using (var scope = app.Services.CreateScope())
     await DbInitializer.EnsureDbIsInitializedAsync(db);
 }
 
-app.Run();
+// Run the application locally
+// app.Run();
+
+// Run the application locally in docker or on a server
+app.Run("http://0.0.0.0:5000");

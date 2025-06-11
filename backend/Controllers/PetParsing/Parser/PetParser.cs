@@ -40,7 +40,6 @@ public class PetParser
         _linkPath = Path.Combine(AppContext.BaseDirectory, "Data", "Seed", "SsLvLinks.json");
     }
 
-
     private static readonly Dictionary<string, int> _categorySpeciesMap = new(StringComparer.OrdinalIgnoreCase)
     {
         ["dogs"] = 1,
@@ -65,7 +64,7 @@ public class PetParser
     };
 
     // Main parsing function
-    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 50)
+    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 10)
     {
         var result = new List<Pets>();
         var client = _httpClientFactory.CreateClient();
