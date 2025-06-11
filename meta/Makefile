@@ -18,3 +18,7 @@ resetdb:
 	dropdb pet_shelters --if-exists
 	createdb pet_shelters
 	dotnet ef database update --project $(PROJECT)
+
+cleandocker:
+	@echo Cleaning up all Docker data...
+	@docker system prune -a --volumes -f
