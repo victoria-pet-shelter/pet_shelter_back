@@ -108,7 +108,7 @@ Development tasks are tracked using GitHub Projects:
 
 ---
 
-## 🔵Docker
+## 🔵 Docker
 
 ```Docker
 docker pull alaner/pet_shelter_backend:latest
@@ -119,6 +119,11 @@ docker-compose up -d
 
 ---
 
+## 🗃️ Database Diagram
+![Database Diagram](https://github.com/user-attachments/assets/68f0907c-5882-46ec-9190-c1fd9157e8f1)
+
+---
+
 ## 🧠 Contributors
 
-- Project by [Alan Arzumanjan](https://github.com/alanarzumanjan) and [Mark Korobkin](https://github.com/maemolol)
+- Project by [Alan Arzumanjan](https://github.com/alanarzumanjan)
