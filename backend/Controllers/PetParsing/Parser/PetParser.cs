@@ -171,7 +171,7 @@ public class PetParser
 
                 if (page >= 1000)
                     break;
-                
+
                 page++;
             }
 
@@ -229,6 +229,17 @@ public class PetParser
         return string.IsNullOrWhiteSpace(link) ? null : "https://www.ss.lv" + link;
     }
 
+    public static string? CleanText(string? input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return null;
+
+        input = Regex.Replace(input, @"[\t\r\n]+", "\n");     // tabs → newline
+        input = Regex.Replace(input, @"\n{2,}", "\n");        // many \n → one
+        input = Regex.Replace(input, @" {2,}", " ");          // many spaces → one
+        return input.Trim();
+    }
+
     // Parses single ad page into a Pets object
     private async Task<Pets?> ParseAdAsync(string fullLink, IBrowsingContext context, HttpClient client, Guid shelterId, string baseUrl)
     {
@@ -237,13 +248,13 @@ public class PetParser
             var petHtml = await client.GetStringAsync(fullLink);
             var petDoc = await context.OpenAsync(req => req.Content(petHtml));
 
-            var title = petDoc.QuerySelector("title")?.TextContent?.Trim();
+            var title = CleanText(petDoc.QuerySelector("title")?.TextContent?.Trim());
             var cleanTitle = Regex.Replace(title?.Split("€. ").LastOrDefault() ?? title ?? "Unnamed", "-+\\s*Sludinājumi\\s*$", "", RegexOptions.IgnoreCase).Trim();
 
             var breedText = GetFieldValue(petDoc, "Šķirne:") ?? GetFieldValue(petDoc, "Порода:");
             var ageText = GetFieldValue(petDoc, "Vecums:") ?? GetFieldValue(petDoc, "Возраст:");
             var colorText = GetFieldValue(petDoc, "Krāsa:") ?? GetFieldValue(petDoc, "Окрас:");
-            var description = petDoc.QuerySelector("div[id^='msg_div_msg']")?.TextContent?.Trim();
+            var description = CleanText(petDoc.QuerySelector("div[id^='msg_div_msg']")?.TextContent?.Trim());
             var priceText = PriceResolver.ExtractPrice(description);
             var photoId = await _imageFetcher.FetchImageIdFromPage(petDoc);
 
