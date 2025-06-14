@@ -38,7 +38,7 @@ public class PetImportBackgroundService : BackgroundService
                 // Filter out duplicates before saving
                 List<Pets> newPets = new();
                 HashSet<string> urlsInBatch = new();
-                
+
                 foreach (var pet in parsedPets)
                 {
                     if (string.IsNullOrWhiteSpace(pet.external_url))
@@ -74,14 +74,14 @@ public class PetImportBackgroundService : BackgroundService
             }
 
             // Wait before next run (default 60 minutes)
-            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+            await Task.Delay(TimeSpan.FromMinutes(60), stoppingToken);
         }
     }
 
     private async Task<Users> EnsureSystemUserAsync(AppDbContext db)
     {
         string? encryptedEmail = EncryptionService.Encrypt("ss@parser.local");
-        
+
         // Check if user already exists
         var user = await db.Users.FirstOrDefaultAsync(u => u.email == encryptedEmail);
         if (user != null)
@@ -95,7 +95,7 @@ public class PetImportBackgroundService : BackgroundService
             password = "",
             role = "shelter_owner"
         };
-        
+
         // Transaction
         using var transaction = await db.Database.BeginTransactionAsync();
         await db.Users.AddAsync(newUser);
@@ -125,7 +125,7 @@ public class PetImportBackgroundService : BackgroundService
             description = "Dates from website",
             created_at = DateTime.UtcNow
         };
-        
+
         // Transaction
         using var transaction = await db.Database.BeginTransactionAsync();
         await db.Shelters.AddAsync(newShelter);
