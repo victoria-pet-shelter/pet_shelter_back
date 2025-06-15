@@ -178,7 +178,7 @@ builder.Services.AddCors(options =>
 });
 
 // Logging off
-builder.Logging.ClearProviders();
+// builder.Logging.ClearProviders();
 
 var app = builder.Build();
 

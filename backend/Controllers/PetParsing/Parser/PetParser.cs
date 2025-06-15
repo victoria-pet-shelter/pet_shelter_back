@@ -64,7 +64,7 @@ public class PetParser
     };
 
     // Main parsing function
-    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 10)
+    public async Task<List<Pets>> ParseFromSsLvAsync(Guid shelterId, int max = 50)
     {
         var result = new List<Pets>();
         var client = _httpClientFactory.CreateClient();
@@ -303,12 +303,27 @@ public class PetParser
     private static string ExtractCategoryPath(string url)
     {
         Uri uri = new Uri(url);
-        return uri.AbsolutePath
-            .Replace("/ru/animals/", "")
-            .Replace("/lv/animals/", "")
-            .Replace("/ru/agriculture/animal-husbandry/agricultural-animals/", "")
-            .Trim('/')
-            .Replace("/sell", "")
-            .ToLowerInvariant();
+        string path = uri.AbsolutePath.ToLowerInvariant();
+
+        // All keys in Dictionary are lowercase, so we can use ToLowerInvariant() for comparison
+        var knownPaths = _categorySpeciesMap.Keys
+            .OrderByDescending(k => k.Length);
+
+        foreach (var key in knownPaths)
+        {
+            if (path.Contains(key.ToLower()))
+            {
+                return key.ToLower();
+            }
+        }
+
+        // fallback — last two segments of the path
+        var segments = uri.Segments
+            .Select(s => s.Trim('/'))
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .ToList();
+
+        return string.Join('/', segments.Skip(Math.Max(0, segments.Count - 2))).ToLower();
     }
+
 }
