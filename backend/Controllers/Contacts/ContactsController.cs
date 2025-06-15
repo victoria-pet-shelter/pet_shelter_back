@@ -29,19 +29,19 @@ namespace Controllers
                 var smtpClient = new SmtpClient("smtp.gmail.com")
                 {
                     Port = 587,
-                    Credentials = new NetworkCredential("markkorobkin@gmail.com", "arfh addh tswn bkke"),
+                    Credentials = new NetworkCredential("maemolol2@gmail.com", "arfh addh tswn bkke"),
                     EnableSsl = true,
                 };
 
                 var mailMessage = new MailMessage
                 {
-                    From = new MailAddress("markkorobkin@gmail.com"),
+                    From = new MailAddress("maemolol2@gmail.com"),
                     Subject = $"📬 Message from {form.Name} ({form.Email})",
                     Body = form.Message,
                     IsBodyHtml = false,
                 };
 
-                mailMessage.To.Add("markkorobkin@gmail.com");
+                mailMessage.To.Add("maemolol2@gmail.com");
 
                 await smtpClient.SendMailAsync(mailMessage);
 
