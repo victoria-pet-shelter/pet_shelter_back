@@ -29,7 +29,7 @@ namespace Controllers
                 var smtpClient = new SmtpClient("smtp.gmail.com")
                 {
                     Port = 587,
-                    Credentials = new NetworkCredential("maemolol2@gmail.com", "arfh addh tswn bkke"),
+                    Credentials = new NetworkCredential("maemolol2@gmail.com", "arfhaddhtswnbkke"),
                     EnableSsl = true,
                 };
 
