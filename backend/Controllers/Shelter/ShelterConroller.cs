@@ -72,7 +72,7 @@ public class SheltersController : ControllerBase
             .Skip(skipCount)
             .Take(pageSize)
             .ToListAsync();
-            
+
         // Decrypt
         foreach (var shelter in shelters)
         {

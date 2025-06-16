@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Linq;
 using Models;
@@ -12,7 +13,6 @@ namespace Controllers;
 
 [ApiController]
 [Route("users")]
-[Authorize(Roles = "admin")] // only admins
 public class UsersController : ControllerBase
 {
     private readonly AppDbContext db;
@@ -102,6 +102,16 @@ public class UsersController : ControllerBase
         if (user == null)
             return NotFound("User not found.");
 
+        string decryptedEmail;
+        try
+        {
+            decryptedEmail = EncryptionService.Decrypt(user.email);
+        }
+        catch (FormatException)
+        {
+            decryptedEmail = user.email; // fallback: оставь как есть
+        }
+
         if (!string.IsNullOrWhiteSpace(user.email))
             user.email = EncryptionService.Decrypt(user.email);
 
@@ -117,7 +127,7 @@ public class UsersController : ControllerBase
         var user = await db.Users.FindAsync(id);
         if (user == null)
             return NotFound("User not found.");
-            
+
         // Transaction
         using var transaction = await db.Database.BeginTransactionAsync();
         db.Users.Remove(user);
@@ -126,4 +136,49 @@ public class UsersController : ControllerBase
 
         return Ok(new { message = "User deleted." });
     }
+
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return Unauthorized();
+
+        var user = await db.Users.FindAsync(Guid.Parse(userId));
+        if (user == null) return NotFound();
+
+        try { user.email = EncryptionService.Decrypt(user.email); } catch { }
+        try { user.phone = EncryptionService.Decrypt(user.phone); } catch { }
+
+        // Transaction
+        // using var transaction = await db.Database.BeginTransactionAsync();
+        // await db.SaveChangesAsync();
+        // await transaction.CommitAsync();
+        return Ok(user);
+    }
+
+
+    [HttpPatch("{id}/password")]
+    [Authorize]
+    public async Task<IActionResult> UpdatePassword(Guid id, [FromBody] PasswordUpdateDto dto)
+    {
+        var user = await db.Users.FindAsync(id);
+        if (user == null) return NotFound();
+
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (currentUserId != user.id.ToString() && !User.IsInRole("admin"))
+            return Forbid();
+
+        user.password = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        await db.SaveChangesAsync();
+
+        if (!string.IsNullOrWhiteSpace(user.email))
+            user.email = EncryptionService.Decrypt(user.email);
+
+        if (!string.IsNullOrWhiteSpace(user.phone))
+            user.phone = EncryptionService.Decrypt(user.phone);
+
+        return Ok(new { message = "Password updated" });
+    }
+
 }
