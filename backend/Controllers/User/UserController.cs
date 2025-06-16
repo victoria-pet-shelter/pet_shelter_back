@@ -102,6 +102,16 @@ public class UsersController : ControllerBase
         if (user == null)
             return NotFound("User not found.");
 
+        string decryptedEmail;
+        try
+        {
+            decryptedEmail = EncryptionService.Decrypt(user.email);
+        }
+        catch (FormatException)
+        {
+            decryptedEmail = user.email; // fallback: оставь как есть
+        }
+
         if (!string.IsNullOrWhiteSpace(user.email))
             user.email = EncryptionService.Decrypt(user.email);
 
@@ -137,8 +147,16 @@ public class UsersController : ControllerBase
         var user = await db.Users.FindAsync(Guid.Parse(userId));
         if (user == null) return NotFound();
 
+        try { user.email = EncryptionService.Decrypt(user.email); } catch { }
+        try { user.phone = EncryptionService.Decrypt(user.phone); } catch { }
+
+        // Transaction
+        // using var transaction = await db.Database.BeginTransactionAsync();
+        // await db.SaveChangesAsync();
+        // await transaction.CommitAsync();
         return Ok(user);
     }
+
 
     [HttpPatch("{id}/password")]
     [Authorize]
