@@ -1,4 +1,4 @@
-#### Main functions of the site (with added registration)
+#### Main functions of the site
 1. Home page
 - Brief information about the nursery
 - Carousel or gallery with photos of animals
